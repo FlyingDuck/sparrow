@@ -12,18 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package club.cookbean.sparrow.annotation;
+package club.cookbean.sparrow.config;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import club.cookbean.sparrow.redis.RedisConnector;
+import club.cookbean.sparrow.redis.RedisResource;
 
-/**
- * Indicates that a {@link club.cookbean.sparrow.service.Service} subtype is permitted to have more than
- * one concrete implementation registered with a {@link club.cookbean.sparrow.provider.ServiceProvider}.
- */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface PluralService {
+public interface CacheRuntimeConfiguration extends CacheConfiguration {
+
+
+    void updateResource(RedisResource redisResource);
+
+    void updateConnector(RedisConnector redisConnector);
+
 }

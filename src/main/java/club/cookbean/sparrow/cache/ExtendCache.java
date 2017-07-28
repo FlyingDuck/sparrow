@@ -12,18 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package club.cookbean.sparrow.annotation;
+package club.cookbean.sparrow.cache;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
 
-/**
- * Indicates that a {@link club.cookbean.sparrow.service.Service} subtype is permitted to have more than
- * one concrete implementation registered with a {@link club.cookbean.sparrow.provider.ServiceProvider}.
- */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface PluralService {
+import club.cookbean.sparrow.loader.CacheLoader;
+import club.cookbean.sparrow.writer.CacheWriter;
+
+public interface ExtendCache extends ManagedCache {
+
+    CacheLoader getCacheLoader();
+
+    CacheWriter getCacheWriter();
+
+
+    void addHook(LifeCycled hook);
 }

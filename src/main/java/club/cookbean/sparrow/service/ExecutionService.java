@@ -12,18 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package club.cookbean.sparrow.annotation;
+package club.cookbean.sparrow.service;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
 
-/**
- * Indicates that a {@link club.cookbean.sparrow.service.Service} subtype is permitted to have more than
- * one concrete implementation registered with a {@link club.cookbean.sparrow.provider.ServiceProvider}.
- */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface PluralService {
+public interface ExecutionService extends Service {
+
+    ScheduledExecutorService getScheduledExecutor(String poolAlias) throws IllegalArgumentException;
+
+    ExecutorService getOrderedExecutor(String poolAlias, BlockingQueue<Runnable> queue) throws IllegalArgumentException;
+
+    ExecutorService getUnorderedExecutor(String poolAlias, BlockingQueue<Runnable> queue) throws IllegalArgumentException;
+
 }

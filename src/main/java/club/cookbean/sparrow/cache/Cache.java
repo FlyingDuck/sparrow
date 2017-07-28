@@ -12,18 +12,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package club.cookbean.sparrow.annotation;
+package club.cookbean.sparrow.cache;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import club.cookbean.sparrow.config.CacheRuntimeConfiguration;
+import club.cookbean.sparrow.exception.CacheLoadingException;
+import club.cookbean.sparrow.exception.CacheWritingException;
+import club.cookbean.sparrow.redis.Cacheable;
 
 /**
- * Indicates that a {@link club.cookbean.sparrow.service.Service} subtype is permitted to have more than
- * one concrete implementation registered with a {@link club.cookbean.sparrow.provider.ServiceProvider}.
+ * Created by Bennett Dong <br>
+ * E-Mail: dongshujin@xiaomi.com <br>
+ * Date: 17-7-7. <br><br>
+ * Desc:
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface PluralService {
+public interface Cache {
+
+    // ToDO more operation
+
+    String get(String key) throws CacheLoadingException;
+
+    void set(String key, Cacheable value) throws CacheWritingException;
+
+    CacheRuntimeConfiguration getRuntimeConfiguration();
 }
