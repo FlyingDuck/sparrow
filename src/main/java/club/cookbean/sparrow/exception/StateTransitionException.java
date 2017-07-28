@@ -12,18 +12,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package club.cookbean.sparrow.annotation;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+package club.cookbean.sparrow.exception;
 
 /**
- * Indicates that a {@link club.cookbean.sparrow.service.Service} subtype is permitted to have more than
- * one concrete implementation registered with a {@link club.cookbean.sparrow.provider.ServiceProvider}.
+ * Indicates that a state transition failed.
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface PluralService {
+public class StateTransitionException extends RuntimeException {
+
+    private static final long serialVersionUID = 7602752670854885218L;
+
+    /**
+     * Creates a {@code StateTransitionException} with the provided cause.
+     * @param cause the cause of this exception
+     */
+    public StateTransitionException(final Throwable cause) {
+        super(cause.getMessage(), cause);
+    }
 }

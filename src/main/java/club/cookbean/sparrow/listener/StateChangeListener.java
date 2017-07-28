@@ -12,18 +12,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package club.cookbean.sparrow.annotation;
+package club.cookbean.sparrow.listener;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
 
-/**
- * Indicates that a {@link club.cookbean.sparrow.service.Service} subtype is permitted to have more than
- * one concrete implementation registered with a {@link club.cookbean.sparrow.provider.ServiceProvider}.
- */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface PluralService {
+import club.cookbean.sparrow.cache.Status;
+
+public interface StateChangeListener {
+
+    /**
+     * Is notified when a state transition occurred.
+     * Any exception thrown by this listener will not affect the transition.
+     *
+     * @param from previous state
+     * @param to new state
+     */
+    void stateTransition(Status from, Status to);
 }
