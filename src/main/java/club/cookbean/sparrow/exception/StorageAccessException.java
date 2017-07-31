@@ -15,7 +15,7 @@
 package club.cookbean.sparrow.exception;
 
 /**
- * Generic exception used when an internal operation fails on a {@link com.xiaomi.miui.global.redis.Cache}.
+ * Generic exception used when an internal operation fails on a {@link club.cookbean.sparrow.cache.Cache}.
  */
 public class StorageAccessException extends Exception {
 

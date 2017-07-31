@@ -19,15 +19,15 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
- * Represents the configuration for a {@link org.ehcache.CacheManager CacheManager}.
+ * Represents the configuration for a {@link club.cookbean.sparrow.cache.CacheManager CacheManager}.
  * <p>
  * <em>Implementations are expected to be read-only.</em>
  */
 public interface Configuration {
 
   /**
-   * Mapping of aliases to {@link CacheConfiguration}s, used to configure the {@link org.ehcache.Cache Cache}s
-   * managed by the {@link org.ehcache.CacheManager CacheManager}.
+   * Mapping of aliases to {@link CacheConfiguration}s, used to configure the {@link club.cookbean.sparrow.cache.Cache Cache}s
+   * managed by the {@link club.cookbean.sparrow.cache.CacheManager CacheManager}.
    * <p>
    * The map must not be {@code null} but can be empty. It must be unmodifiable.
    *
@@ -36,8 +36,8 @@ public interface Configuration {
   Map<String, CacheConfiguration> getCacheConfigurations();
 
   /**
-   * {@link ServiceCreationConfiguration} initially used to bootstrap the {@link org.ehcache.CacheManager CacheManager}
-   * and its {@link org.ehcache.Cache Cache}s.
+   * {@link ServiceCreationConfiguration} initially used to bootstrap the {@link club.cookbean.sparrow.cache.CacheManager CacheManager}
+   * and its {@link club.cookbean.sparrow.cache.Cache Cache}s.
    * <p>
    * The collection must not be null but can be empty. Also it must be unmodifiable.
    *
@@ -46,10 +46,10 @@ public interface Configuration {
   Collection<ServiceCreationConfiguration<?>> getServiceCreationConfigurations();
 
   /**
-   * The {@link ClassLoader} for the {@link org.ehcache.CacheManager CacheManager}.
+   * The {@link ClassLoader} for the {@link club.cookbean.sparrow.cache.CacheManager CacheManager}.
    * <p>
    * This {@code ClassLoader} will be used to instantiate cache manager level services
-   * and for {@link org.ehcache.Cache Cache}s that do not have a specific {@code ClassLoader}.
+   * and for {@link club.cookbean.sparrow.cache.Cache Cache}s that do not have a specific {@code ClassLoader}.
    * <p>
    * The {@code ClassLoader} must not be null.
    *

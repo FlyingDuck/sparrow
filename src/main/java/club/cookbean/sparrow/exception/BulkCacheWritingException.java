@@ -19,7 +19,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Thrown by a {@link org.ehcache.Cache} when its {@link CacheLoaderWriter}
+ * Thrown by a {@link club.cookbean.sparrow.cache.Cache} when its {@link club.cookbean.sparrow.loader.CacheLoader}
  * fails while bulk mutating values.
  */
 public class BulkCacheWritingException extends CacheWritingException {

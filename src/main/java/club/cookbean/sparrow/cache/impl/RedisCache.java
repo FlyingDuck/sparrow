@@ -30,12 +30,6 @@ import club.cookbean.sparrow.storage.Storage;
 import club.cookbean.sparrow.writer.CacheWriter;
 import org.slf4j.Logger;
 
-/**
- * Created by Bennett Dong <br>
- * E-Mail: dongshujin@xiaomi.com <br>
- * Date: 17-7-18. <br><br>
- * Desc:
- */
 public class RedisCache implements ExtendCache {
 
     private final StatusTransitioner statusTransitioner;
