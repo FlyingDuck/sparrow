@@ -15,6 +15,7 @@
 package club.cookbean.sparrow.factory;
 
 import club.cookbean.sparrow.config.ServiceCreationConfiguration;
+import club.cookbean.sparrow.provider.ServiceProvider;
 import club.cookbean.sparrow.service.Service;
 
 import java.lang.annotation.ElementType;
@@ -34,7 +35,7 @@ public interface ServiceFactory<T extends Service> {
      * Note that a {@code null} configuration may be supported or even required by a service implementation.
      *
      * @param configuration the creation configuration, can be {@code null} for some services
-     * @return the new service, not {@link Service#start(ServiceProvider) started}
+     * @return the new service, not {@link Service#start(ServiceProvider)}  started
      */
     T create(ServiceCreationConfiguration<T> configuration);
 
