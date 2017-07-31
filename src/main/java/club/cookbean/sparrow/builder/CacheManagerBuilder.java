@@ -52,9 +52,9 @@ public class CacheManagerBuilder<T extends CacheManager> implements Builder<T> {
         return new CacheManagerBuilder<>();
     }
 
-    public static CacheManager newCacheManager(Configuration configuration) {
+    /*public static CacheManager newCacheManager(Configuration configuration) {
         return new RedisCacheManager(configuration);
-    }
+    }*/
 
     T newCacheManager(Configuration configuration, Collection<Service> services) {
         RedisCacheManager redisCacheManager = new RedisCacheManager(configuration, services);

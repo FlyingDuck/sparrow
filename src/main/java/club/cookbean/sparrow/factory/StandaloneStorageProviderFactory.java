@@ -1,8 +1,9 @@
-package club.cookbean.sparrow.storage.standalone;
+package club.cookbean.sparrow.factory;
 
 
 import club.cookbean.sparrow.config.ServiceCreationConfiguration;
 import club.cookbean.sparrow.factory.ServiceFactory;
+import club.cookbean.sparrow.storage.standalone.StandaloneStorage;
 
 public class StandaloneStorageProviderFactory implements ServiceFactory<StandaloneStorage.Provider> {
     @Override
