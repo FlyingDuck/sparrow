@@ -312,16 +312,15 @@ public class RedisCacheManager implements InternalCacheManager {
         // TODO 组装对应的 Cache 实例
         ExtendCache cache = null;
         if (null == loaderDecorator && null == writerDecorator) {
-            cache = new RedisCache(config, storage, LoggerFactory.getLogger(RedisCache.class + "-" + alias));
+            cache = new RedisCache(config, storage, LoggerFactory.getLogger(RedisCache.class + "-" + alias), null, null);
         } else {
             if (null != loaderDecorator && null != writerDecorator) {
-
+                cache = new RedisWriterLoaderCache(config, storage, LoggerFactory.getLogger(RedisWriterLoaderCache.class+"-"+alias), loaderDecorator, writerDecorator);
             } else if (null != writerDecorator) {
                 cache = new RedisWriterCache(config, storage, writerDecorator, LoggerFactory.getLogger(RedisWriterCache.class +"-"+ alias));
             } else {
                 cache = new RedisLoaderCache(config, storage, loaderDecorator, LoggerFactory.getLogger(RedisLoaderCache.class+"-"+alias));
             }
-
         }
 
         for (LifeCycled lifeCycled : lifeCycledList) {

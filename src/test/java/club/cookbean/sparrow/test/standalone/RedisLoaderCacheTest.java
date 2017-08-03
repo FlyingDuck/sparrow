@@ -1,4 +1,4 @@
-package club.cookbean.sparrow.test;
+package club.cookbean.sparrow.test.standalone;
 
 import club.cookbean.sparrow.builder.CacheConfigurationBuilder;
 import club.cookbean.sparrow.builder.CacheManagerBuilder;
@@ -22,7 +22,7 @@ import java.util.Map;
  * Mail: dongshujin.beans@gmail.com <br> <br>
  * Desc:
  */
-public class RedisStandaloneLoaderCacheTest {
+public class RedisLoaderCacheTest {
 
     private static MockDB mockDB = MockDB.getDB();
 

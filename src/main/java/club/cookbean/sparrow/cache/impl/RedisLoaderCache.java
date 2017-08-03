@@ -30,24 +30,24 @@ import org.slf4j.Logger;
  * Mail: dongshujin.beans@gmail.com <br> <br>
  * Desc: Redis cache with CacheLoader
  */
-public class RedisLoaderCache extends BaseCache {
+public class RedisLoaderCache extends RedisCache {
 
     private final CacheLoader cacheLoader;
     private final boolean useLoaderInAtomics;
 
-    public RedisLoaderCache(CacheConfiguration cacheConfiguration,
+    RedisLoaderCache(CacheConfiguration cacheConfiguration,
                             Storage storage,
                             CacheLoader cacheLoader,
                             Logger logger) {
         this(cacheConfiguration, storage, cacheLoader, true, logger);
     }
 
-    public RedisLoaderCache(CacheConfiguration cacheConfiguration,
+    RedisLoaderCache(CacheConfiguration cacheConfiguration,
                             Storage storage,
                             CacheLoader cacheLoader,
                             boolean useLoaderInAtomics,
                             Logger logger) {
-        super(cacheConfiguration, storage, logger);
+        super(cacheConfiguration, storage, logger, cacheLoader, null);
         if (null == cacheLoader) {
             throw new IllegalArgumentException("CacheLoader cannot be Null");
         }

@@ -25,7 +25,7 @@ import club.cookbean.sparrow.storage.Storage;
 import club.cookbean.sparrow.writer.CacheWriter;
 import org.slf4j.Logger;
 
-public class RedisWriterCache extends BaseCache {
+public class RedisWriterCache extends RedisCache {
 
     private final CacheWriter cacheWriter;
 
@@ -33,7 +33,7 @@ public class RedisWriterCache extends BaseCache {
                             Storage storage,
                             CacheWriter cacheWriter,
                             Logger logger) {
-        super(cacheConfiguration, storage, logger);
+        super(cacheConfiguration, storage, logger, null, cacheWriter);
         if (null == cacheWriter) {
             throw new IllegalArgumentException("CacheWriter cannot be Null");
         }

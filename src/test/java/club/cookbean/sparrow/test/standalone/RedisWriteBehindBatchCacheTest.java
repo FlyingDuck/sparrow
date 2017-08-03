@@ -1,4 +1,4 @@
-package club.cookbean.sparrow.test;
+package club.cookbean.sparrow.test.standalone;
 
 import club.cookbean.sparrow.builder.*;
 import club.cookbean.sparrow.cache.Cache;
@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
  * Mail: dongshujin.beans@gmail.com <br> <br>
  * Desc:
  */
-public class RedisStandaloneWriteBehindBatchCacheTest {
+public class RedisWriteBehindBatchCacheTest {
 
     private static MockDB mockDB = MockDB.getDB();
 

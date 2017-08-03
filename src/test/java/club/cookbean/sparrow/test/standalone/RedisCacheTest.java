@@ -1,4 +1,4 @@
-package club.cookbean.sparrow.test;
+package club.cookbean.sparrow.test.standalone;
 
 import club.cookbean.sparrow.builder.CacheConfigurationBuilder;
 import club.cookbean.sparrow.builder.CacheManagerBuilder;
@@ -18,7 +18,7 @@ import redis.clients.jedis.HostAndPort;
  * Mail: dongshujin.beans@gmail.com <br> <br>
  * Desc: RedisCache with standalone node.
  */
-public class RedisStandaloneCacheTest {
+public class RedisCacheTest {
 
     private static CacheManager cacheManager;
     private static Cache standaloneCache;

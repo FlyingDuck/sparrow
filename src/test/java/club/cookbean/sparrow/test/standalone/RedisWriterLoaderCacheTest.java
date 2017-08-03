@@ -1,9 +1,14 @@
-package club.cookbean.sparrow.test;
+package club.cookbean.sparrow.test.standalone;
 
-import club.cookbean.sparrow.builder.*;
+import club.cookbean.sparrow.builder.CacheConfigurationBuilder;
+import club.cookbean.sparrow.builder.CacheManagerBuilder;
+import club.cookbean.sparrow.builder.RedisConnectorBuilder;
+import club.cookbean.sparrow.builder.RedisResourceBuilder;
 import club.cookbean.sparrow.cache.Cache;
 import club.cookbean.sparrow.cache.CacheManager;
+import club.cookbean.sparrow.exception.BulkCacheLoadingException;
 import club.cookbean.sparrow.exception.BulkCacheWritingException;
+import club.cookbean.sparrow.loader.CacheLoader;
 import club.cookbean.sparrow.redis.Cacheable;
 import club.cookbean.sparrow.test.db.MockDB;
 import club.cookbean.sparrow.writer.CacheWriter;
@@ -19,7 +24,7 @@ import java.util.Map;
  * Mail: dongshujin.beans@gmail.com <br> <br>
  * Desc:
  */
-public class RedisStandaloneWriteBehindCacheTest {
+public class RedisWriterLoaderCacheTest {
 
     private static MockDB mockDB = MockDB.getDB();
 
@@ -29,20 +34,60 @@ public class RedisStandaloneWriteBehindCacheTest {
 
     @BeforeClass
     public static void beforeClass() {
+        // init MockDB
+        mockDB.init(new MockDB.DataHolder("load-1", "loadValue-I"),
+                new MockDB.DataHolder("load-2", "loadValue-II"),
+                new MockDB.DataHolder("load-3", "loadValue-III"));
+
+        // cache loader
+        final CacheLoader cacheLoader = new CacheLoader() {
+            final String TAG = "[CacheLoader]";
+            @Override
+            public Cacheable load(String key) throws Exception {
+                System.out.println(TAG+"["+Thread.currentThread().getName()+"] load");
+                final MockDB.DataHolder dataHolder = mockDB.get(key);
+                Cacheable value = null;
+                if (null != dataHolder) {
+                    value = new Cacheable() {
+                        @Override
+                        public long getExpireTime() {
+                            return 1000;
+                        }
+
+                        @Override
+                        public long getCreationTime() {
+                            return System.currentTimeMillis();
+                        }
+
+                        @Override
+                        public String toJsonString() {
+                            return dataHolder.toString();
+                        }
+                    };
+                }
+                return value;
+            }
+
+            @Override
+            public Map<String, Cacheable> loadAll(Iterable<String> keys) throws BulkCacheLoadingException, Exception {
+                return null;
+            }
+        };
+
         // cache writer
         final CacheWriter cacheWriter = new CacheWriter() {
             final String TAG = "[CacheWriter]";
 
             @Override
             public void write(String key, Cacheable value) throws Exception {
-                System.out.println(TAG+"["+Thread.currentThread().getName()+"] write");
+                System.out.println(TAG+" write");
                 MockDB.DataHolder dataHolder = new MockDB.DataHolder(key, value.toJsonString());
                 mockDB.add(dataHolder);
             }
 
             @Override
             public void writeAll(Iterable<? extends Map.Entry<String, Cacheable>> entries) throws BulkCacheWritingException, Exception {
-                System.out.println(TAG+"["+Thread.currentThread().getName()+"] writeAll");
+                System.out.println(TAG+" writeAll");
                 for (Map.Entry<String, Cacheable> entry : entries) {
                     mockDB.add(new MockDB.DataHolder(entry.getKey(), entry.getValue().toJsonString()));
                 }
@@ -61,9 +106,6 @@ public class RedisStandaloneWriteBehindCacheTest {
 
         // cache manager
         cacheManager = CacheManagerBuilder.newCacheManagerBuilder()
-                .using(PooledExecutionServiceConfigurationBuilder.newPooledExecutionServiceConfigurationBuilder()
-                        .defaultPool("DefaultPool", 5, 10)
-                        .build())
                 .build();
         cacheManager.init();
 
@@ -75,15 +117,24 @@ public class RedisStandaloneWriteBehindCacheTest {
                         RedisConnectorBuilder.newRedisConnectorBuilder().standalone()
                                 .name("test")
                                 .prefix("prefix")
-                                .pool(20, 10, 5, 1000))
+                                .pool(20, 5, 1, 1000))
                         .withCacheWriter(cacheWriter)
-                        .withWriteBehind(WriteBehindConfigurationBuilder.newUnBatchedWriteBehindConfiguration().build())
+                        .withCacheLoader(cacheLoader)
         );
     }
 
     @Test
+    public void testGet() {
+        String key = "load";
+        for (int i=0; i<10; i++) {
+            String value = standaloneCache.get(key+"-"+i);
+            System.out.println("value="+value);
+        }
+    }
+
+    @Test
     public void testGetAndSet() {
-        String key = "write-behind-unbatch";
+        String key = "cache";
         String value = standaloneCache.get(key);
         System.out.println("value="+value);
 
@@ -107,51 +158,6 @@ public class RedisStandaloneWriteBehindCacheTest {
 
         value = standaloneCache.get(key);
         System.out.println("value="+value);
-
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Test
-    public void testSetBatchAndGet() {
-        String key = "write-behind-unbatch";
-        String value = standaloneCache.get(key);
-        System.out.println("value="+value);
-
-        for (int i=0; i<10; i++) {
-            final int finalI = i;
-            Cacheable cacheValue = new Cacheable() {
-                @Override
-                public long getExpireTime() {
-                    return 10000;
-                }
-
-                @Override
-                public long getCreationTime() {
-                    return System.currentTimeMillis();
-                }
-
-                @Override
-                public String toJsonString() {
-                    return "{\"name\":\"Bennet\", \"index\": "+ finalI +"}";
-                }
-            };
-            standaloneCache.set(key+"-"+i, cacheValue);
-        }
-
-        for (int i=0; i<15; i++) {
-            value = standaloneCache.get(key+"-"+i);
-            System.out.println("value=" + value);
-        }
-
-        try {
-            Thread.sleep(20000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 
 }

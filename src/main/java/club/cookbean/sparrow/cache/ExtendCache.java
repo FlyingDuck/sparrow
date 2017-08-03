@@ -24,6 +24,5 @@ public interface ExtendCache extends ManagedCache {
 
     CacheWriter getCacheWriter();
 
-
     void addHook(LifeCycled hook);
 }
