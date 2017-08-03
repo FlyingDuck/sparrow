@@ -28,7 +28,8 @@ import club.cookbean.sparrow.writer.CacheWriter;
  * Date: 17-7-21. <br><br>
  * Desc:
  */
-public class DefaultCacheWriterProvider extends ClassInstanceProvider<String, CacheWriter> implements CacheWriterProvider {
+public class DefaultCacheWriterProvider extends ClassInstanceProvider<String, CacheWriter>
+        implements CacheWriterProvider {
 
     public DefaultCacheWriterProvider(DefaultCacheWriterProviderConfiguration configuration) {
         super(configuration, DefaultCacheWriterConfiguration.class, true);

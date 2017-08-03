@@ -20,7 +20,10 @@ import club.cookbean.sparrow.cache.Status;
 import club.cookbean.sparrow.config.CacheConfiguration;
 import club.cookbean.sparrow.config.CacheRuntimeConfiguration;
 import club.cookbean.sparrow.config.impl.RedisCacheRuntimeConfiguration;
-import club.cookbean.sparrow.exception.*;
+import club.cookbean.sparrow.exception.CacheLoadingException;
+import club.cookbean.sparrow.exception.CacheWritingException;
+import club.cookbean.sparrow.exception.StateTransitionException;
+import club.cookbean.sparrow.exception.StorageAccessException;
 import club.cookbean.sparrow.function.SingleFunction;
 import club.cookbean.sparrow.function.impl.MemoizingSingleFunction;
 import club.cookbean.sparrow.loader.CacheLoader;
@@ -29,32 +32,38 @@ import club.cookbean.sparrow.storage.Storage;
 import club.cookbean.sparrow.writer.CacheWriter;
 import org.slf4j.Logger;
 
-public class RedisWriterCache implements ExtendCache {
+/**
+ * Created by Bennett Dong <br>
+ * Date : 2017/8/3 <br>
+ * Mail: dongshujin.beans@gmail.com <br> <br>
+ * Desc: Redis cache with CacheLoader
+ */
+public class RedisLoaderCache implements ExtendCache {
 
     private final StatusTransitioner statusTransitioner;
     private final RedisCacheRuntimeConfiguration runtimeConfiguration;
     private final Storage storage;
     protected final Logger logger;
 
-    private final CacheWriter cacheWriter;
+    private final CacheLoader cacheLoader;
     private final boolean useLoaderInAtomics;
 
-    public RedisWriterCache(CacheConfiguration cacheConfiguration,
+    public RedisLoaderCache(CacheConfiguration cacheConfiguration,
                             Storage storage,
-                            CacheWriter cacheWriter,
+                            CacheLoader cacheLoader,
                             Logger logger) {
-        this(cacheConfiguration, storage, cacheWriter, true, logger);
+        this(cacheConfiguration, storage, cacheLoader, true, logger);
     }
 
-    public RedisWriterCache(CacheConfiguration cacheConfiguration,
+    public RedisLoaderCache(CacheConfiguration cacheConfiguration,
                             Storage storage,
-                            CacheWriter cacheWriter,
+                            CacheLoader cacheLoader,
                             boolean useLoaderInAtomics,
                             Logger logger) {
-        if (null == cacheWriter) {
-            throw new IllegalArgumentException("CacheWriter cannot be Null");
+        if (null == cacheLoader) {
+            throw new IllegalArgumentException("CacheLoader cannot be Null");
         }
-        this.cacheWriter = cacheWriter;
+        this.cacheLoader = cacheLoader;
         this.runtimeConfiguration = new RedisCacheRuntimeConfiguration(cacheConfiguration);
         this.runtimeConfiguration.addCacheConfigurationListener(storage.getConfigurationChangeListeners());
         this.storage = storage;
@@ -65,87 +74,79 @@ public class RedisWriterCache implements ExtendCache {
 
     @Override
     public String get(String key) throws CacheLoadingException {
-        statusTransitioner.checkAvailable();
+        this.statusTransitioner.checkAvailable();
         checkNonNull(key);
 
-        try {
-            String value = storage.get(key);
-            return value;
-        } catch (StorageAccessException e) {
-            logger.error("Get exception", e);
-        }
-        return null;
-    }
-
-    @Override
-    public void set(String key, final Cacheable value) throws CacheWritingException {
-        statusTransitioner.checkAvailable();
-        checkNonNull(key, value);
-//        final AtomicReference<Cacheable> previousSetting = new AtomicReference<>();
-        SingleFunction<String, Cacheable> setFunction = MemoizingSingleFunction.memoize(new SingleFunction<String, Cacheable>() {
+        SingleFunction<String, Cacheable> getFunction = MemoizingSingleFunction.memoize(new SingleFunction<String, Cacheable>() {
             @Override
             public Cacheable apply(String key) {
+                Cacheable value = null;
                 try {
-                    cacheWriter.write(key, value);
+                    value = cacheLoader.load(key);
                 } catch (Exception e) {
-                    throw new StoragePassThroughException(new CacheWritingException(e));
+                    e.printStackTrace();
                 }
                 return value;
             }
         });
 
         try {
-            storage.handleWriteSingle(key, setFunction);
-        } catch (StorageAccessException ex) {
-            try {
-                setFunction.apply(key);
-            } catch (StoragePassThroughException e) {
-                // todo 重试策略
-                return;
-            } finally {
-
-            }
+            String value = storage.handleLoadSingle(key, getFunction);
+            return value;
+        } catch (StorageAccessException e) {
+            Cacheable loadValue = getFunction.apply(key);
+            return null != loadValue ? loadValue.toJsonString() : null;
         }
     }
 
     @Override
-    public CacheRuntimeConfiguration getRuntimeConfiguration() {
-        return this.runtimeConfiguration;
+    public void set(String key, Cacheable value) throws CacheWritingException {
+        statusTransitioner.checkAvailable();
+        checkNonNull(key, value);
+        try {
+            storage.set(key, value);
+        } catch (StorageAccessException e) {
+            logger.error("Set exception", e);
+        }
     }
 
-    @Override
-    public CacheLoader getCacheLoader() {
-        // RedisWriterCache not set CacheLoader
-        return null;
-    }
-
-    @Override
-    public CacheWriter getCacheWriter() {
-        return this.cacheWriter;
-    }
-
-    @Override
-    public void addHook(LifeCycled hook) {
-        statusTransitioner.addHook(hook);
-    }
-
-    void removeHook(LifeCycled hook) {
-        statusTransitioner.removeHook(hook);
-    }
 
     @Override
     public void init() throws StateTransitionException {
-        statusTransitioner.init().succeeded();
+        this.statusTransitioner.init().succeeded();
     }
 
     @Override
     public void close() throws StateTransitionException {
-        statusTransitioner.close().succeeded();
+        this.statusTransitioner.close().succeeded();
     }
 
     @Override
     public Status getStatus() {
-        return statusTransitioner.currentStatus();
+        return this.statusTransitioner.currentStatus();
+    }
+
+    @Override
+    public CacheLoader getCacheLoader() {
+        return cacheLoader;
+    }
+
+    @Override
+    public CacheWriter getCacheWriter() {
+        // This is a loader cache
+        return null;
+    }
+
+    @Override
+    public void addHook(LifeCycled hook) {
+        this.statusTransitioner.addHook(hook);
+    }
+
+
+
+    @Override
+    public CacheRuntimeConfiguration getRuntimeConfiguration() {
+        return this.runtimeConfiguration;
     }
 
     private static void checkNonNull(Object thing) {

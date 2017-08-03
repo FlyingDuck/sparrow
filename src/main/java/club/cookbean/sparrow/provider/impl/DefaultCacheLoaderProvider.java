@@ -22,7 +22,8 @@ import club.cookbean.sparrow.config.impl.DefaultCacheLoaderProviderConfiguration
 import club.cookbean.sparrow.loader.CacheLoader;
 import club.cookbean.sparrow.provider.CacheLoaderProvider;
 
-public class DefaultCacheLoaderProvider extends ClassInstanceProvider<String, CacheLoader> implements CacheLoaderProvider {
+public class DefaultCacheLoaderProvider extends ClassInstanceProvider<String, CacheLoader>
+        implements CacheLoaderProvider {
 
     public DefaultCacheLoaderProvider(DefaultCacheLoaderProviderConfiguration configuration) {
         super(configuration, DefaultCacheLoaderConfiguration.class, true);

@@ -1,4 +1,6 @@
 club.cookbean.sparrow.factory.DefaultCacheWriterProviderFactory
+club.cookbean.sparrow.factory.DefaultCacheLoaderProviderFactory
+
 club.cookbean.sparrow.factory.WriteBehindProviderFactory
 club.cookbean.sparrow.factory.DefaultExecutionServiceFactory
 club.cookbean.sparrow.factory.StandaloneStorageProviderFactory
