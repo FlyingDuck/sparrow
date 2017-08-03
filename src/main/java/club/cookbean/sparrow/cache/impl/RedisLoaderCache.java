@@ -14,22 +14,14 @@
  */
 package club.cookbean.sparrow.cache.impl;
 
-import club.cookbean.sparrow.cache.ExtendCache;
-import club.cookbean.sparrow.cache.LifeCycled;
-import club.cookbean.sparrow.cache.Status;
 import club.cookbean.sparrow.config.CacheConfiguration;
-import club.cookbean.sparrow.config.CacheRuntimeConfiguration;
-import club.cookbean.sparrow.config.impl.RedisCacheRuntimeConfiguration;
 import club.cookbean.sparrow.exception.CacheLoadingException;
-import club.cookbean.sparrow.exception.CacheWritingException;
-import club.cookbean.sparrow.exception.StateTransitionException;
 import club.cookbean.sparrow.exception.StorageAccessException;
 import club.cookbean.sparrow.function.SingleFunction;
 import club.cookbean.sparrow.function.impl.MemoizingSingleFunction;
 import club.cookbean.sparrow.loader.CacheLoader;
 import club.cookbean.sparrow.redis.Cacheable;
 import club.cookbean.sparrow.storage.Storage;
-import club.cookbean.sparrow.writer.CacheWriter;
 import org.slf4j.Logger;
 
 /**
@@ -38,12 +30,7 @@ import org.slf4j.Logger;
  * Mail: dongshujin.beans@gmail.com <br> <br>
  * Desc: Redis cache with CacheLoader
  */
-public class RedisLoaderCache implements ExtendCache {
-
-    private final StatusTransitioner statusTransitioner;
-    private final RedisCacheRuntimeConfiguration runtimeConfiguration;
-    private final Storage storage;
-    protected final Logger logger;
+public class RedisLoaderCache extends BaseCache {
 
     private final CacheLoader cacheLoader;
     private final boolean useLoaderInAtomics;
@@ -60,15 +47,11 @@ public class RedisLoaderCache implements ExtendCache {
                             CacheLoader cacheLoader,
                             boolean useLoaderInAtomics,
                             Logger logger) {
+        super(cacheConfiguration, storage, logger);
         if (null == cacheLoader) {
             throw new IllegalArgumentException("CacheLoader cannot be Null");
         }
         this.cacheLoader = cacheLoader;
-        this.runtimeConfiguration = new RedisCacheRuntimeConfiguration(cacheConfiguration);
-        this.runtimeConfiguration.addCacheConfigurationListener(storage.getConfigurationChangeListeners());
-        this.storage = storage;
-        this.logger = logger;
-        this.statusTransitioner = new StatusTransitioner(logger);
         this.useLoaderInAtomics = useLoaderInAtomics;
     }
 
@@ -100,64 +83,7 @@ public class RedisLoaderCache implements ExtendCache {
     }
 
     @Override
-    public void set(String key, Cacheable value) throws CacheWritingException {
-        statusTransitioner.checkAvailable();
-        checkNonNull(key, value);
-        try {
-            storage.set(key, value);
-        } catch (StorageAccessException e) {
-            logger.error("Set exception", e);
-        }
-    }
-
-
-    @Override
-    public void init() throws StateTransitionException {
-        this.statusTransitioner.init().succeeded();
-    }
-
-    @Override
-    public void close() throws StateTransitionException {
-        this.statusTransitioner.close().succeeded();
-    }
-
-    @Override
-    public Status getStatus() {
-        return this.statusTransitioner.currentStatus();
-    }
-
-    @Override
     public CacheLoader getCacheLoader() {
         return cacheLoader;
-    }
-
-    @Override
-    public CacheWriter getCacheWriter() {
-        // This is a loader cache
-        return null;
-    }
-
-    @Override
-    public void addHook(LifeCycled hook) {
-        this.statusTransitioner.addHook(hook);
-    }
-
-
-
-    @Override
-    public CacheRuntimeConfiguration getRuntimeConfiguration() {
-        return this.runtimeConfiguration;
-    }
-
-    private static void checkNonNull(Object thing) {
-        if(thing == null) {
-            throw new NullPointerException();
-        }
-    }
-
-    private static void checkNonNull(Object... things) {
-        for (Object thing : things) {
-            checkNonNull(thing);
-        }
     }
 }
