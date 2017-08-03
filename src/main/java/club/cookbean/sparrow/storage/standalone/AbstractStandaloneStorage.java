@@ -19,6 +19,7 @@ import club.cookbean.sparrow.function.SingleFunction;
 import club.cookbean.sparrow.redis.Cacheable;
 import club.cookbean.sparrow.storage.Storage;
 import org.apache.commons.lang3.StringUtils;
+import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
 /**
@@ -47,13 +48,23 @@ public abstract class AbstractStandaloneStorage implements Storage {
     @Override
     public String get(String key) throws StorageAccessException {
         String finalKey = normalizeKey(key);
-        return jedisPool.getResource().get(finalKey);
+        Jedis jedis = jedisPool.getResource();
+        try {
+            return jedis.get(finalKey);
+        } finally {
+            jedis.close();
+        }
     }
 
     @Override
     public void set(String key, Cacheable value) throws StorageAccessException {
         String finalKey = normalizeKey(key);
-        jedisPool.getResource().set(finalKey, value.toJsonString());
+        Jedis jedis = jedisPool.getResource();
+        try {
+            jedisPool.getResource().set(finalKey, value.toJsonString());
+        } finally {
+            jedis.close();
+        }
     }
 
     @Override

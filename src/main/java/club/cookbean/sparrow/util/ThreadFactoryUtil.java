@@ -27,7 +27,7 @@ public class ThreadFactoryUtil {
 
       @Override
       public Thread newThread(Runnable r) {
-        return new Thread(threadGroup, r, "Ehcache [" + poolAlias + "]-" + threadCount.getAndIncrement());
+        return new Thread(threadGroup, r, "Sparrow cache [" + poolAlias + "]-" + threadCount.getAndIncrement());
       }
     };
   }
