@@ -31,8 +31,11 @@ public interface Storage extends ConfigurationChangeSupport {
 
     void set(String key, Cacheable value) throws StorageAccessException;
 
+    // handle write
     void handleWriteSingle(String key, SingleFunction<String, Cacheable> setFunction) throws StorageAccessException;
 
+
+    // hand load
     String handleLoadSingle(String key, SingleFunction<String, Cacheable> getFunction) throws StorageAccessException;
 
     // TODO ... more functions

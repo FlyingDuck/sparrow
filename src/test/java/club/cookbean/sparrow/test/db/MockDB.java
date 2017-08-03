@@ -1,9 +1,6 @@
 package club.cookbean.sparrow.test.db;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by Bennett Dong <br>
@@ -18,6 +15,12 @@ public class MockDB {
 
     public static MockDB getDB() {
         return new MockDB();
+    }
+
+    public void init(DataHolder... dataHolders) {
+        for (DataHolder dataHolder : dataHolders) {
+            add(dataHolder);
+        }
     }
 
     private MockDB() {

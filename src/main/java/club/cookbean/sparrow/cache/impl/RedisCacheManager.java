@@ -91,8 +91,8 @@ public class RedisCacheManager implements InternalCacheManager {
     private ServiceLocator resolveServices(Collection<Service> services) {
         ServiceLocator.DependencySet builder = ServiceLocator.dependencySet()
                 .with(Storage.Provider.class)
-                /*.with(CacheLoaderProvider.class)
-                .with(LoadBehindProvider.class)
+                .with(CacheLoaderProvider.class)
+                /*.with(LoadBehindProvider.class)
                 // TODO 暂时不支持 load 和 behindLoad
                 */
                 .with(CacheWriterProvider.class)
@@ -317,9 +317,9 @@ public class RedisCacheManager implements InternalCacheManager {
             if (null != loaderDecorator && null != writerDecorator) {
 
             } else if (null != writerDecorator) {
-                cache = new RedisWriterCache(config, storage, writerDecorator, LoggerFactory.getLogger(RedisCache.class +"-"+ alias));
+                cache = new RedisWriterCache(config, storage, writerDecorator, LoggerFactory.getLogger(RedisWriterCache.class +"-"+ alias));
             } else {
-
+                cache = new RedisLoaderCache(config, storage, loaderDecorator, LoggerFactory.getLogger(RedisLoaderCache.class+"-"+alias));
             }
 
         }

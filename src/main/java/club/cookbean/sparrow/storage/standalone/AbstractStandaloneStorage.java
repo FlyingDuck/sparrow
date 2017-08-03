@@ -61,7 +61,7 @@ public abstract class AbstractStandaloneStorage implements Storage {
         String finalKey = normalizeKey(key);
         Jedis jedis = jedisPool.getResource();
         try {
-            jedisPool.getResource().set(finalKey, value.toJsonString());
+            jedis.set(finalKey, value.toJsonString());
         } finally {
             jedis.close();
         }
@@ -83,8 +83,10 @@ public abstract class AbstractStandaloneStorage implements Storage {
         // Cache 中不存在 则 load, 后写 Cache
         if (null == value) {
             Cacheable loadValue = getFunction.apply(key);
-            value = loadValue.toJsonString();
-            set(key, loadValue);
+            if (null != loadValue) {
+                value = loadValue.toJsonString();
+                set(key, loadValue);
+            }
         }
         return value;
     }
@@ -93,16 +95,4 @@ public abstract class AbstractStandaloneStorage implements Storage {
     public String normalizeKey(String key) {
         return this.finalPrefix+":"+key;
     }
-
-    private void checkKey(String key) {
-        if(StringUtils.isBlank(key)) {
-            throw new NullPointerException();
-        }
-    }
-
-    /*private static void checkNonNull(Object... things) {
-        for (Object thing : things) {
-            checkNonNull(thing);
-        }
-    }*/
 }
