@@ -1,9 +1,6 @@
-package club.cookbean.sparrow.test;
+package club.cookbean.sparrow.test.standalone;
 
-import club.cookbean.sparrow.builder.CacheConfigurationBuilder;
-import club.cookbean.sparrow.builder.CacheManagerBuilder;
-import club.cookbean.sparrow.builder.RedisConnectorBuilder;
-import club.cookbean.sparrow.builder.RedisResourceBuilder;
+import club.cookbean.sparrow.builder.*;
 import club.cookbean.sparrow.cache.Cache;
 import club.cookbean.sparrow.cache.CacheManager;
 import club.cookbean.sparrow.exception.BulkCacheWritingException;
@@ -18,11 +15,11 @@ import java.util.Map;
 
 /**
  * Created by Bennett Dong <br>
- * Date : 2017/8/2 <br>
+ * Date : 2017/8/3 <br>
  * Mail: dongshujin.beans@gmail.com <br> <br>
  * Desc:
  */
-public class RedisStandaloneWriterCacheTest {
+public class RedisWriteBehindCacheTest {
 
     private static MockDB mockDB = MockDB.getDB();
 
@@ -38,14 +35,14 @@ public class RedisStandaloneWriterCacheTest {
 
             @Override
             public void write(String key, Cacheable value) throws Exception {
-                System.out.println(TAG+" write");
+                System.out.println(TAG+"["+Thread.currentThread().getName()+"] write");
                 MockDB.DataHolder dataHolder = new MockDB.DataHolder(key, value.toJsonString());
                 mockDB.add(dataHolder);
             }
 
             @Override
             public void writeAll(Iterable<? extends Map.Entry<String, Cacheable>> entries) throws BulkCacheWritingException, Exception {
-                System.out.println(TAG+" writeAll");
+                System.out.println(TAG+"["+Thread.currentThread().getName()+"] writeAll");
                 for (Map.Entry<String, Cacheable> entry : entries) {
                     mockDB.add(new MockDB.DataHolder(entry.getKey(), entry.getValue().toJsonString()));
                 }
@@ -64,6 +61,9 @@ public class RedisStandaloneWriterCacheTest {
 
         // cache manager
         cacheManager = CacheManagerBuilder.newCacheManagerBuilder()
+                .using(PooledExecutionServiceConfigurationBuilder.newPooledExecutionServiceConfigurationBuilder()
+                        .defaultPool("DefaultPool", 5, 10)
+                        .build())
                 .build();
         cacheManager.init();
 
@@ -75,14 +75,15 @@ public class RedisStandaloneWriterCacheTest {
                         RedisConnectorBuilder.newRedisConnectorBuilder().standalone()
                                 .name("test")
                                 .prefix("prefix")
-                                .pool(20, 5, 1, 1000)
-                ).withCacheWriter(cacheWriter)
+                                .pool(20, 10, 5, 1000))
+                        .withCacheWriter(cacheWriter)
+                        .withWriteBehind(WriteBehindConfigurationBuilder.newUnBatchedWriteBehindConfiguration().build())
         );
     }
 
     @Test
     public void testGetAndSet() {
-        String key = "cache";
+        String key = "write-behind-unbatch";
         String value = standaloneCache.get(key);
         System.out.println("value="+value);
 
@@ -106,8 +107,51 @@ public class RedisStandaloneWriterCacheTest {
 
         value = standaloneCache.get(key);
         System.out.println("value="+value);
+
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
+    @Test
+    public void testSetBatchAndGet() {
+        String key = "write-behind-unbatch";
+        String value = standaloneCache.get(key);
+        System.out.println("value="+value);
 
+        for (int i=0; i<10; i++) {
+            final int finalI = i;
+            Cacheable cacheValue = new Cacheable() {
+                @Override
+                public long getExpireTime() {
+                    return 10000;
+                }
+
+                @Override
+                public long getCreationTime() {
+                    return System.currentTimeMillis();
+                }
+
+                @Override
+                public String toJsonString() {
+                    return "{\"name\":\"Bennet\", \"index\": "+ finalI +"}";
+                }
+            };
+            standaloneCache.set(key+"-"+i, cacheValue);
+        }
+
+        for (int i=0; i<15; i++) {
+            value = standaloneCache.get(key+"-"+i);
+            System.out.println("value=" + value);
+        }
+
+        try {
+            Thread.sleep(20000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
 
 }

@@ -1,17 +1,3 @@
-/* Copyright 2017 Bennett Dong. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package club.cookbean.sparrow.cache.impl;
 
 import club.cookbean.sparrow.cache.ExtendCache;
@@ -25,28 +11,45 @@ import club.cookbean.sparrow.exception.CacheWritingException;
 import club.cookbean.sparrow.exception.StateTransitionException;
 import club.cookbean.sparrow.exception.StorageAccessException;
 import club.cookbean.sparrow.loader.CacheLoader;
+import club.cookbean.sparrow.loader.impl.SingleCacheLoader;
 import club.cookbean.sparrow.redis.Cacheable;
 import club.cookbean.sparrow.storage.Storage;
 import club.cookbean.sparrow.writer.CacheWriter;
 import org.slf4j.Logger;
 
+/**
+ * Created by Bennett Dong <br>
+ * Date : 2017/8/3 <br>
+ * Mail: dongshujin.beans@gmail.com <br> <br>
+ * Desc:
+ */
 public class RedisCache implements ExtendCache {
 
-    private final StatusTransitioner statusTransitioner;
-    private final RedisCacheRuntimeConfiguration runtimeConfiguration;
-    private final Storage storage;
+    protected CacheLoader cacheLoader;
+    protected CacheWriter cacheWriter;
+
+    protected final StatusTransitioner statusTransitioner;
+    protected final RedisCacheRuntimeConfiguration runtimeConfiguration;
+    protected final Storage storage;
     protected final Logger logger;
 
-    public RedisCache(CacheConfiguration cacheConfiguration, Storage storage, Logger logger) {
+    RedisCache(CacheConfiguration cacheConfiguration,
+               Storage storage,
+               Logger logger,
+               CacheLoader cacheLoader,
+               CacheWriter cacheWriter) {
         this.runtimeConfiguration = new RedisCacheRuntimeConfiguration(cacheConfiguration);
         this.runtimeConfiguration.addCacheConfigurationListener(storage.getConfigurationChangeListeners());
         this.storage = storage;
         this.logger = logger;
-        this.statusTransitioner = new StatusTransitioner(logger);
+        this.statusTransitioner = new StatusTransitioner(this.logger);
+        this.cacheLoader = cacheLoader;
+        this.cacheWriter = cacheWriter;
     }
 
     @Override
     public void init() {
+
         statusTransitioner.init().succeeded();
     }
 
@@ -55,14 +58,14 @@ public class RedisCache implements ExtendCache {
         statusTransitioner.close().succeeded();
     }
 
+    // ----------------------------------- basic method -----------------------------------
     @Override
     public String get(String key) throws CacheLoadingException {
         statusTransitioner.checkAvailable();
         checkNonNull(key);
 
         try {
-            String value = storage.get(key);
-            return value;
+            return storage.get(key);
         } catch (StorageAccessException e) {
             logger.error("Get exception", e);
         }
@@ -80,6 +83,31 @@ public class RedisCache implements ExtendCache {
         }
     }
 
+    // ----------------------------------- loader method -----------------------------------
+
+    @Override
+    public String getWithLoader(String key) throws CacheLoadingException {
+        throw new UnsupportedOperationException("RedisCache is not support loader function");
+    }
+
+    @Override
+    public String getWithLoader(String key, CacheLoader cacheLoader) throws CacheLoadingException {
+        throw new UnsupportedOperationException("RedisCache is not support loader function");
+    }
+
+    // ----------------------------------- writer method -----------------------------------
+
+
+    @Override
+    public void setWithWriter(String key, Cacheable value) throws CacheWritingException {
+        throw new UnsupportedOperationException("RedisCache is not support writer function");
+    }
+
+    @Override
+    public void setWithWriter(String key, Cacheable value, CacheWriter cacheWriter) throws CacheWritingException {
+        throw new UnsupportedOperationException("RedisCache is not support writer function");
+    }
+
     @Override
     public CacheRuntimeConfiguration getRuntimeConfiguration() {
         return runtimeConfiguration;
@@ -88,14 +116,12 @@ public class RedisCache implements ExtendCache {
 
     @Override
     public CacheLoader getCacheLoader() {
-        // not set loader
-        return null;
+        return cacheLoader;
     }
 
     @Override
     public CacheWriter getCacheWriter() {
-        // not set writer
-        return null;
+        return cacheWriter;
     }
 
     @Override
@@ -108,15 +134,16 @@ public class RedisCache implements ExtendCache {
         return statusTransitioner.currentStatus();
     }
 
-    private static void checkNonNull(Object thing) {
+    protected static void checkNonNull(Object thing) {
         if(thing == null) {
             throw new NullPointerException();
         }
     }
 
-    private static void checkNonNull(Object... things) {
+    protected static void checkNonNull(Object... things) {
         for (Object thing : things) {
             checkNonNull(thing);
         }
     }
+
 }

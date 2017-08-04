@@ -14,15 +14,18 @@
  */
 package club.cookbean.sparrow.cache;
 
-
+import club.cookbean.sparrow.exception.CacheLoadingException;
 import club.cookbean.sparrow.loader.CacheLoader;
-import club.cookbean.sparrow.writer.CacheWriter;
 
-public interface ExtendCache extends ManagedCache {
+/**
+ * Created by Bennett Dong <br>
+ * Date : 2017/8/4 <br>
+ * Mail: dongshujin.beans@gmail.com <br> <br>
+ * Desc:
+ */
+public interface Loadable {
 
-    CacheLoader getCacheLoader();
+    String getWithLoader(String key) throws CacheLoadingException;
 
-    CacheWriter getCacheWriter();
-
-    void addHook(LifeCycled hook);
+    String getWithLoader(String key, CacheLoader cacheLoader) throws CacheLoadingException;
 }

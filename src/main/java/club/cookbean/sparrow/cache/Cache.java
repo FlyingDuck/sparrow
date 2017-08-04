@@ -17,7 +17,10 @@ package club.cookbean.sparrow.cache;
 import club.cookbean.sparrow.config.CacheRuntimeConfiguration;
 import club.cookbean.sparrow.exception.CacheLoadingException;
 import club.cookbean.sparrow.exception.CacheWritingException;
+import club.cookbean.sparrow.loader.CacheLoader;
+import club.cookbean.sparrow.loader.impl.SingleCacheLoader;
 import club.cookbean.sparrow.redis.Cacheable;
+import club.cookbean.sparrow.writer.CacheWriter;
 
 /**
  * Created by Bennett Dong <br>
@@ -25,13 +28,14 @@ import club.cookbean.sparrow.redis.Cacheable;
  * Date: 17-7-7. <br><br>
  * Desc:
  */
-public interface Cache {
+public interface Cache extends Loadable, Writable {
 
-    // ToDO more operation
-
+    // -----------------------  basic operation -----------------------
     String get(String key) throws CacheLoadingException;
 
     void set(String key, Cacheable value) throws CacheWritingException;
+
+
 
     CacheRuntimeConfiguration getRuntimeConfiguration();
 }
