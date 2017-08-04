@@ -6,6 +6,7 @@ import club.cookbean.sparrow.builder.RedisConnectorBuilder;
 import club.cookbean.sparrow.builder.RedisResourceBuilder;
 import club.cookbean.sparrow.cache.Cache;
 import club.cookbean.sparrow.cache.CacheManager;
+import club.cookbean.sparrow.cache.impl.RedisCache;
 import club.cookbean.sparrow.exception.BulkCacheWritingException;
 import club.cookbean.sparrow.redis.Cacheable;
 import club.cookbean.sparrow.test.db.MockDB;
@@ -29,7 +30,6 @@ public class RedisWriterCacheTest {
 
     private static CacheManager cacheManager;
     private static Cache standaloneCache;
-
 
     @BeforeClass
     public static void beforeClass() {

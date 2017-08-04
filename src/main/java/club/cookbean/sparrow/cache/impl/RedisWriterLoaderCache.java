@@ -14,13 +14,11 @@ import org.slf4j.Logger;
  */
 public class RedisWriterLoaderCache extends RedisCache {
 
-//    private RedisWriterCache redisWriterCache;
-//    private RedisLoaderCache redisLoaderCache;
     private CacheLoader cacheLoader;
     private CacheWriter cacheWriter;
 
 
-    public RedisWriterLoaderCache(CacheConfiguration cacheConfiguration,
+    RedisWriterLoaderCache(CacheConfiguration cacheConfiguration,
                            Storage storage,
                            Logger logger,
                            CacheLoader cacheLoader,
@@ -32,8 +30,6 @@ public class RedisWriterLoaderCache extends RedisCache {
         if (null == cacheWriter) {
             throw new IllegalArgumentException("CacheWriter cannot be Null");
         }
-//        this.redisLoaderCache = new RedisLoaderCache(cacheConfiguration, storage, cacheLoader, logger);
-//        this.redisWriterCache = new RedisWriterCache(cacheConfiguration, storage, cacheWriter, logger);
         this.cacheLoader = cacheLoader;
         this.cacheWriter = cacheWriter;
     }

@@ -29,9 +29,7 @@ import java.util.Arrays;
 
 public class RedisWriterCache extends RedisCache {
 
-//    private final CacheWriter cacheWriter;
-
-    public RedisWriterCache(CacheConfiguration cacheConfiguration,
+    RedisWriterCache(CacheConfiguration cacheConfiguration,
                             Storage storage,
                             CacheWriter cacheWriter,
                             Logger logger) {
@@ -39,7 +37,6 @@ public class RedisWriterCache extends RedisCache {
         if (null == cacheWriter) {
             throw new IllegalArgumentException("CacheWriter cannot be Null");
         }
-//        this.cacheWriter = cacheWriter;
     }
 
     @Override
