@@ -14,7 +14,7 @@
  */
 package club.cookbean.sparrow.function;
 
-public interface SingleFunction<A, R> {
+public interface Function<A, R> {
 
     R apply(A paramA);
 }

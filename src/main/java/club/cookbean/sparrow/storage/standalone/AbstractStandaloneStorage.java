@@ -15,7 +15,7 @@
 package club.cookbean.sparrow.storage.standalone;
 
 import club.cookbean.sparrow.exception.StorageAccessException;
-import club.cookbean.sparrow.function.SingleFunction;
+import club.cookbean.sparrow.function.Function;
 import club.cookbean.sparrow.redis.Cacheable;
 import club.cookbean.sparrow.storage.Storage;
 import org.slf4j.Logger;
@@ -25,6 +25,8 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.Pipeline;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
 
 /**
  * Created by Bennett Dong <br>
@@ -156,22 +158,39 @@ public abstract class AbstractStandaloneStorage implements Storage {
 
     // ++++++++++++++++++++++++++++ handle ++++++++++++++++++++++++++++
 
+
     @Override
-    public void handleWriteSingle(String key, SingleFunction<String, Cacheable> setFunction) throws StorageAccessException {
+    public void handleDelete(String key, Function<String, Boolean> deleteFunc) throws StorageAccessException {
+        Boolean delete = deleteFunc.apply(key);
+        if (null != delete && delete) {
+            this.delete(key);
+        }
+    }
+
+    @Override
+    public void handleDeleteAll(String[] keys, Function<Iterable<String>, Boolean> deleteAllFunc) throws StorageAccessException {
+        Boolean delete = deleteAllFunc.apply(Arrays.asList(keys));
+        if (null != delete && delete) {
+            this.delete(keys);
+        }
+    }
+
+    @Override
+    public void handleWriteSingle(String key, Function<String, Cacheable> setFunc) throws StorageAccessException {
         // 先 write, 后写 Cache
-        Cacheable value = setFunction.apply(key);
+        Cacheable value = setFunc.apply(key);
         if (null != value) {
             this.set(key, value);
         }
     }
 
     @Override
-    public String handleLoadSingle(String key, SingleFunction<String, Cacheable> getFunction) throws StorageAccessException {
+    public String handleLoadSingle(String key, Function<String, Cacheable> getFunc) throws StorageAccessException {
         // 先读
         String value = this.get(key);
         // Cache 中不存在 则 load, 后写 Cache
         if (null == value) {
-            Cacheable loadValue = getFunction.apply(key);
+            Cacheable loadValue = getFunc.apply(key);
             if (null != loadValue) {
                 value = loadValue.toStringValue();
                 this.set(key, loadValue);

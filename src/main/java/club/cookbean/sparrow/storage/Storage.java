@@ -17,7 +17,7 @@ package club.cookbean.sparrow.storage;
 
 import club.cookbean.sparrow.annotation.PluralService;
 import club.cookbean.sparrow.exception.StorageAccessException;
-import club.cookbean.sparrow.function.SingleFunction;
+import club.cookbean.sparrow.function.Function;
 import club.cookbean.sparrow.redis.Cacheable;
 import club.cookbean.sparrow.redis.RedisConnector;
 import club.cookbean.sparrow.redis.RedisResource;
@@ -42,11 +42,15 @@ public interface Storage extends ConfigurationChangeSupport {
     void set(String key, Cacheable value) throws StorageAccessException;
 
     // handle write
-    void handleWriteSingle(String key, SingleFunction<String, Cacheable> setFunction) throws StorageAccessException;
+    void handleDelete(String key, Function<String, Boolean> deleteFunc) throws StorageAccessException;
+
+    void handleDeleteAll(String[] keys, Function<Iterable<String>, Boolean> deleteAllFunc) throws StorageAccessException;
+
+    void handleWriteSingle(String key, Function<String, Cacheable> setFunc) throws StorageAccessException;
 
 
     // hand load
-    String handleLoadSingle(String key, SingleFunction<String, Cacheable> getFunction) throws StorageAccessException;
+    String handleLoadSingle(String key, Function<String, Cacheable> getFunc) throws StorageAccessException;
 
     // TODO ... more functions
 

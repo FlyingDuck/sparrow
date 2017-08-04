@@ -15,10 +15,10 @@
 package club.cookbean.sparrow.operation.impl;
 
 
-import club.cookbean.sparrow.operation.SingleWriteOperation;
+import club.cookbean.sparrow.operation.SingleOperation;
 import club.cookbean.sparrow.writer.CacheWriter;
 
-public class DeleteOperation implements SingleWriteOperation {
+public class DeleteOperation implements SingleOperation {
     private final String key;
     private final long creationTime;
 

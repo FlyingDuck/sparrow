@@ -31,6 +31,16 @@ import club.cookbean.sparrow.writer.CacheWriter;
 public interface Cache extends Loadable, Writable {
 
     // -----------------------  basic operation -----------------------
+    boolean exist(String key) throws CacheLoadingException;
+
+    boolean expire(String key, long millisecond) throws CacheWritingException;
+
+    boolean expireAt(String key, long timestamp) throws CacheWritingException;
+
+    void delete(String key) throws CacheWritingException;
+
+    void delete(String... keys) throws CacheWritingException;
+
     String get(String key) throws CacheLoadingException;
 
     void set(String key, Cacheable value) throws CacheWritingException;

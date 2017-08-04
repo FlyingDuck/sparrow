@@ -17,8 +17,8 @@ package club.cookbean.sparrow.cache.impl;
 import club.cookbean.sparrow.config.CacheConfiguration;
 import club.cookbean.sparrow.exception.CacheLoadingException;
 import club.cookbean.sparrow.exception.StorageAccessException;
-import club.cookbean.sparrow.function.SingleFunction;
-import club.cookbean.sparrow.function.impl.MemoizingSingleFunction;
+import club.cookbean.sparrow.function.Function;
+import club.cookbean.sparrow.function.impl.MemoizingFunction;
 import club.cookbean.sparrow.loader.CacheLoader;
 import club.cookbean.sparrow.redis.Cacheable;
 import club.cookbean.sparrow.storage.Storage;
@@ -66,7 +66,7 @@ public class RedisLoaderCache extends RedisCache {
         this.statusTransitioner.checkAvailable();
         checkNonNull(key);
 
-        SingleFunction<String, Cacheable> getFunction = MemoizingSingleFunction.memoize(new SingleFunction<String, Cacheable>() {
+        Function<String, Cacheable> getFunction = MemoizingFunction.memoize(new Function<String, Cacheable>() {
             @Override
             public Cacheable apply(String key) {
                 Cacheable value = null;

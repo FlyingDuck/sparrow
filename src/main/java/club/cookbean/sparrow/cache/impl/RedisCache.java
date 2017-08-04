@@ -48,14 +48,69 @@ public class RedisCache implements ExtendCache {
     }
 
     @Override
-    public void init() {
+    public boolean exist(String key) throws CacheLoadingException {
+        statusTransitioner.checkAvailable();
+        checkNonNull(key);
 
-        statusTransitioner.init().succeeded();
+        try {
+            return storage.exist(key);
+        } catch (StorageAccessException e) {
+            logger.error("Get exception", e);
+        }
+        return false;
     }
 
     @Override
-    public void close() throws StateTransitionException {
-        statusTransitioner.close().succeeded();
+    public boolean expire(String key, long millisecond) throws CacheWritingException {
+        statusTransitioner.checkAvailable();
+        checkNonNull(key);
+
+        try {
+            return storage.expire(key, millisecond);
+        } catch (StorageAccessException e) {
+            logger.error("Expire exception. [key="+key+", duration="+millisecond+"]", e);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean expireAt(String key, long timestamp) throws CacheWritingException {
+        statusTransitioner.checkAvailable();
+        checkNonNull(key);
+
+        try {
+            return storage.expireAt(key, timestamp);
+        } catch (StorageAccessException e) {
+            logger.error("ExpireAt exception. [key="+key+", timestamp="+timestamp+"]", e);
+        }
+        return false;
+    }
+
+    @Override
+    public void delete(String key) throws CacheWritingException {
+        statusTransitioner.checkAvailable();
+        checkNonNull(key);
+
+        try {
+            storage.delete(key);
+        } catch (StorageAccessException e) {
+            logger.error("Delete exception. [key="+key+"]", e);
+        }
+    }
+
+    @Override
+    public void delete(String... keys) throws CacheWritingException {
+        statusTransitioner.checkAvailable();
+        checkNonNull(keys);
+        try {
+            storage.delete(keys);
+        } catch (StorageAccessException e) {
+            StringBuilder keyBuilder = new StringBuilder();
+            for (String key : keys) {
+                keyBuilder.append(key).append(", ");
+            }
+            logger.error("Multiple delete exception.[keys="+keyBuilder+"]", e);
+        }
     }
 
     // ----------------------------------- basic method -----------------------------------
@@ -97,6 +152,15 @@ public class RedisCache implements ExtendCache {
 
     // ----------------------------------- writer method -----------------------------------
 
+    @Override
+    public void deleteWithWriter(String key) throws CacheWritingException {
+        throw new UnsupportedOperationException("RedisCache is not support writer function");
+    }
+
+    @Override
+    public void deleteAllWithWriter(String... keys) throws CacheWritingException {
+        throw new UnsupportedOperationException("RedisCache is not support writer function");
+    }
 
     @Override
     public void setWithWriter(String key, Cacheable value) throws CacheWritingException {
@@ -106,6 +170,16 @@ public class RedisCache implements ExtendCache {
     @Override
     public void setWithWriter(String key, Cacheable value, CacheWriter cacheWriter) throws CacheWritingException {
         throw new UnsupportedOperationException("RedisCache is not support writer function");
+    }
+
+    @Override
+    public void init() {
+        statusTransitioner.init().succeeded();
+    }
+
+    @Override
+    public void close() throws StateTransitionException {
+        statusTransitioner.close().succeeded();
     }
 
     @Override

@@ -15,11 +15,11 @@
 package club.cookbean.sparrow.operation.impl;
 
 
-import club.cookbean.sparrow.operation.SingleWriteOperation;
+import club.cookbean.sparrow.operation.SingleOperation;
 import club.cookbean.sparrow.redis.Cacheable;
 import club.cookbean.sparrow.writer.CacheWriter;
 
-public class WriteOperation implements SingleWriteOperation {
+public class WriteOperation implements SingleOperation {
 
     private final String key;
     private final Cacheable value;
