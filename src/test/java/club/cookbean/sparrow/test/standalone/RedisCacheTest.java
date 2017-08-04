@@ -49,7 +49,7 @@ public class RedisCacheTest {
         Cacheable value = new Cacheable() {
             @Override
             public long getExpireTime() {
-                return -1;
+                return 3600*1000;
             }
 
             @Override

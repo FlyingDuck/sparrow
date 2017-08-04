@@ -56,7 +56,13 @@ public class RedisLoaderCache extends RedisCache {
     }
 
     @Override
-    public String get(String key) throws CacheLoadingException {
+    public String getWithLoader(String key) throws CacheLoadingException {
+        return getWithLoader(key, this.cacheLoader);
+    }
+
+    @Override
+    public String getWithLoader(String key, final CacheLoader singleCacheLoader)
+            throws CacheLoadingException {
         this.statusTransitioner.checkAvailable();
         checkNonNull(key);
 
@@ -65,7 +71,7 @@ public class RedisLoaderCache extends RedisCache {
             public Cacheable apply(String key) {
                 Cacheable value = null;
                 try {
-                    value = cacheLoader.load(key);
+                    value = singleCacheLoader.load(key);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

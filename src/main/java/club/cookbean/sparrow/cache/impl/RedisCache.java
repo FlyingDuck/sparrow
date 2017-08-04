@@ -11,6 +11,7 @@ import club.cookbean.sparrow.exception.CacheWritingException;
 import club.cookbean.sparrow.exception.StateTransitionException;
 import club.cookbean.sparrow.exception.StorageAccessException;
 import club.cookbean.sparrow.loader.CacheLoader;
+import club.cookbean.sparrow.loader.impl.SingleCacheLoader;
 import club.cookbean.sparrow.redis.Cacheable;
 import club.cookbean.sparrow.storage.Storage;
 import club.cookbean.sparrow.writer.CacheWriter;
@@ -57,6 +58,7 @@ public class RedisCache implements ExtendCache {
         statusTransitioner.close().succeeded();
     }
 
+    // ----------------------------------- basic method -----------------------------------
     @Override
     public String get(String key) throws CacheLoadingException {
         statusTransitioner.checkAvailable();
@@ -79,6 +81,31 @@ public class RedisCache implements ExtendCache {
         } catch (StorageAccessException e) {
             logger.error("Set exception", e);
         }
+    }
+
+    // ----------------------------------- loader method -----------------------------------
+
+    @Override
+    public String getWithLoader(String key) throws CacheLoadingException {
+        throw new UnsupportedOperationException("RedisCache is not support loader function");
+    }
+
+    @Override
+    public String getWithLoader(String key, CacheLoader cacheLoader) throws CacheLoadingException {
+        throw new UnsupportedOperationException("RedisCache is not support loader function");
+    }
+
+    // ----------------------------------- writer method -----------------------------------
+
+
+    @Override
+    public void setWithWriter(String key, Cacheable value) throws CacheWritingException {
+        throw new UnsupportedOperationException("RedisCache is not support writer function");
+    }
+
+    @Override
+    public void setWithWriter(String key, Cacheable value, CacheWriter cacheWriter) throws CacheWritingException {
+        throw new UnsupportedOperationException("RedisCache is not support writer function");
     }
 
     @Override

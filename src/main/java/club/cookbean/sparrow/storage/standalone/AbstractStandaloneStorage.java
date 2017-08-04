@@ -25,6 +25,7 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.Pipeline;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Created by Bennett Dong <br>
@@ -68,6 +69,7 @@ public abstract class AbstractStandaloneStorage implements Storage {
         try {
             pipeline.set(finalKey, value.toJsonString());
             pipeline.pexpire(finalKey, value.getExpireTime());
+            //List<Object> result = pipeline.syncAndReturnAll();
             pipeline.sync();
         } catch (Exception e) {
             throw new StorageAccessException(e);
@@ -103,7 +105,7 @@ public abstract class AbstractStandaloneStorage implements Storage {
             Cacheable loadValue = getFunction.apply(key);
             if (null != loadValue) {
                 value = loadValue.toJsonString();
-                set(key, loadValue);
+                this.set(key, loadValue);
             }
         }
         return value;

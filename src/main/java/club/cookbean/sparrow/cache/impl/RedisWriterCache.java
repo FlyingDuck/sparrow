@@ -41,14 +41,19 @@ public class RedisWriterCache extends RedisCache {
     }
 
     @Override
-    public void set(String key, final Cacheable value) throws CacheWritingException {
+    public void setWithWriter(String key, final Cacheable value) throws CacheWritingException {
+        setWithWriter(key, value, this.cacheWriter);
+    }
+
+    @Override
+    public void setWithWriter(String key, final Cacheable value, final CacheWriter singleCacheWriter) throws CacheWritingException {
         statusTransitioner.checkAvailable();
         checkNonNull(key, value);
         SingleFunction<String, Cacheable> setFunction = MemoizingSingleFunction.memoize(new SingleFunction<String, Cacheable>() {
             @Override
             public Cacheable apply(String key) {
                 try {
-                    cacheWriter.write(key, value);
+                    singleCacheWriter.write(key, value);
                 } catch (Exception e) {
                     throw new StoragePassThroughException(new CacheWritingException(e));
                 }

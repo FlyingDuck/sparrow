@@ -12,28 +12,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package club.cookbean.sparrow.writer;
+package club.cookbean.sparrow.cache;
 
-
-import club.cookbean.sparrow.exception.BulkCacheWritingException;
+import club.cookbean.sparrow.exception.CacheWritingException;
 import club.cookbean.sparrow.redis.Cacheable;
-
-import java.util.Map;
+import club.cookbean.sparrow.writer.CacheWriter;
 
 /**
  * Created by Bennett Dong <br>
- * E-Mail: dongshujin@xiaomi.com <br>
- * Date: 17-7-15. <br><br>
+ * Date : 2017/8/4 <br>
+ * Mail: dongshujin.beans@gmail.com <br> <br>
  * Desc:
  */
-public interface CacheWriter {
-    // TODO  write / writeAll / delete / appendList / setWithWriter / writeMap ...
+public interface Writable {
 
-    void write(String key, Cacheable value) throws Exception;
+    void setWithWriter(String key, Cacheable value) throws CacheWritingException;
 
-    void writeAll(Iterable<? extends Map.Entry<String, Cacheable>> entries) throws BulkCacheWritingException, Exception;
-
-    void delete(String key) throws Exception;
-
-    void deleteAll(Iterable<String> keys) throws BulkCacheWritingException, Exception;
+    void setWithWriter(String key, Cacheable value, CacheWriter cacheWriter) throws CacheWritingException;
 }

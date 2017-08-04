@@ -108,6 +108,11 @@ public class RedisWriterCacheTest {
         System.out.println("value="+value);
     }
 
+    @Test
+    public void testSetWiter() {
+
+    }
+
 
 
 }

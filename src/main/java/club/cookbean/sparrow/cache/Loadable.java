@@ -14,28 +14,18 @@
  */
 package club.cookbean.sparrow.cache;
 
-import club.cookbean.sparrow.config.CacheRuntimeConfiguration;
 import club.cookbean.sparrow.exception.CacheLoadingException;
-import club.cookbean.sparrow.exception.CacheWritingException;
 import club.cookbean.sparrow.loader.CacheLoader;
-import club.cookbean.sparrow.loader.impl.SingleCacheLoader;
-import club.cookbean.sparrow.redis.Cacheable;
-import club.cookbean.sparrow.writer.CacheWriter;
 
 /**
  * Created by Bennett Dong <br>
- * E-Mail: dongshujin@xiaomi.com <br>
- * Date: 17-7-7. <br><br>
+ * Date : 2017/8/4 <br>
+ * Mail: dongshujin.beans@gmail.com <br> <br>
  * Desc:
  */
-public interface Cache extends Loadable, Writable {
+public interface Loadable {
 
-    // -----------------------  basic operation -----------------------
-    String get(String key) throws CacheLoadingException;
+    String getWithLoader(String key) throws CacheLoadingException;
 
-    void set(String key, Cacheable value) throws CacheWritingException;
-
-
-
-    CacheRuntimeConfiguration getRuntimeConfiguration();
+    String getWithLoader(String key, CacheLoader cacheLoader) throws CacheLoadingException;
 }

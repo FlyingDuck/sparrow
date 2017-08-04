@@ -8,6 +8,7 @@ import club.cookbean.sparrow.cache.Cache;
 import club.cookbean.sparrow.cache.CacheManager;
 import club.cookbean.sparrow.exception.BulkCacheLoadingException;
 import club.cookbean.sparrow.loader.CacheLoader;
+import club.cookbean.sparrow.loader.impl.SingleCacheLoader;
 import club.cookbean.sparrow.redis.Cacheable;
 import club.cookbean.sparrow.test.db.MockDB;
 import org.junit.BeforeClass;
@@ -94,8 +95,48 @@ public class RedisLoaderCacheTest {
     public void testGet() {
         String key = "load";
         for (int i=0; i<10; i++) {
+            String value = standaloneCache.getWithLoader(key+"-"+i);
+            System.out.println("getWithLoader value="+value);
+        }
+
+        for (int i=0; i<10; i++) {
             String value = standaloneCache.get(key+"-"+i);
-            System.out.println("value="+value);
+            System.out.println("get value="+value);
+        }
+
+    }
+
+    @Test
+    public void testLoaderGet() {
+        String key = "load";
+        for (int i=0; i<10; i++) {
+            String value = standaloneCache.getWithLoader(key + "-" + i, new SingleCacheLoader() {
+                @Override
+                public Cacheable load(final String key) throws Exception {
+                    return new Cacheable() {
+                        @Override
+                        public long getExpireTime() {
+                            return 600000;
+                        }
+
+                        @Override
+                        public long getCreationTime() {
+                            return System.currentTimeMillis();
+                        }
+
+                        @Override
+                        public String toJsonString() {
+                            return "SingleLoader-"+key;
+                        }
+                    };
+                }
+            });
+            System.out.println("getWithLoader value="+value);
+        }
+
+        for (int i=0; i<10; i++) {
+            String value = standaloneCache.get(key+"-"+i);
+            System.out.println("get value="+value);
         }
     }
 }
