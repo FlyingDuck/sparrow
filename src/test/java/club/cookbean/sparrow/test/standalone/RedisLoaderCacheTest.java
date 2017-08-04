@@ -59,7 +59,7 @@ public class RedisLoaderCacheTest {
                         }
 
                         @Override
-                        public String toJsonString() {
+                        public String toStringValue() {
                             return dataHolder.toString();
                         }
                     };
@@ -125,7 +125,7 @@ public class RedisLoaderCacheTest {
                         }
 
                         @Override
-                        public String toJsonString() {
+                        public String toStringValue() {
                             return "SingleLoader-"+key;
                         }
                     };

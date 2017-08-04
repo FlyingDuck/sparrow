@@ -25,7 +25,6 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.Pipeline;
 
 import java.io.IOException;
-import java.util.List;
 
 /**
  * Created by Bennett Dong <br>
@@ -52,12 +51,82 @@ public abstract class AbstractStandaloneStorage implements Storage {
     }
 
     @Override
+    public boolean exist(String key) throws StorageAccessException {
+        String finalKey = normalizeKey(key);
+        Jedis jedis = jedisPool.getResource();
+        try {
+            return jedis.exists(finalKey);
+        } catch (Exception e) {
+            throw new StorageAccessException(e);
+        } finally {
+            if (null != jedis)
+                jedis.close();
+        }
+    }
+
+    @Override
+    public boolean expire(String key, long millisecond) throws StorageAccessException {
+        String finalKey = normalizeKey(key);
+        Jedis jedis = jedisPool.getResource();
+        try {
+            Long result = jedis.pexpire(finalKey, millisecond);
+            return null != result && result > 0;
+        } catch (Exception e) {
+            throw new StorageAccessException(e);
+        } finally {
+            if (null != jedis)
+                jedis.close();
+        }
+    }
+
+    @Override
+    public boolean expireAt(String key, long timestamp) throws StorageAccessException {
+        String finalKey = normalizeKey(key);
+        Jedis jedis = jedisPool.getResource();
+        try {
+            Long result = jedis.pexpireAt(finalKey, timestamp);
+            return null != result && result > 0;
+        } catch (Exception e) {
+            throw new StorageAccessException(e);
+        } finally {
+            if (null != jedis)
+                jedis.close();
+        }
+    }
+
+    @Override
+    public void delete(String key) throws StorageAccessException {
+        delete(new String[]{key});
+    }
+
+    @Override
+    public void delete(String... keys) throws StorageAccessException {
+        String[] finalKeys = new String[keys.length];
+        for (int i = 0; i < keys.length; i++) {
+            finalKeys[i] = normalizeKey(keys[i]);
+        }
+        Jedis jedis = jedisPool.getResource();
+        try {
+            jedis.del(finalKeys);
+        } catch (Exception e) {
+            throw new StorageAccessException(e);
+        } finally {
+            if (null != jedis)
+                jedis.close();
+        }
+    }
+
+    @Override
     public String get(String key) throws StorageAccessException {
         String finalKey = normalizeKey(key);
-        try (Jedis jedis = jedisPool.getResource()) {
+        Jedis jedis = jedisPool.getResource();
+        try {
             return jedis.get(finalKey);
         } catch (Exception e) {
             throw new StorageAccessException(e);
+        } finally {
+            if (null != jedis)
+                jedis.close();
         }
     }
 
@@ -67,7 +136,7 @@ public abstract class AbstractStandaloneStorage implements Storage {
         Jedis jedis = jedisPool.getResource();
         Pipeline pipeline = jedis.pipelined();
         try {
-            pipeline.set(finalKey, value.toJsonString());
+            pipeline.set(finalKey, value.toStringValue());
             pipeline.pexpire(finalKey, value.getExpireTime());
             //List<Object> result = pipeline.syncAndReturnAll();
             pipeline.sync();
@@ -104,7 +173,7 @@ public abstract class AbstractStandaloneStorage implements Storage {
         if (null == value) {
             Cacheable loadValue = getFunction.apply(key);
             if (null != loadValue) {
-                value = loadValue.toJsonString();
+                value = loadValue.toStringValue();
                 this.set(key, loadValue);
             }
         }
@@ -113,6 +182,6 @@ public abstract class AbstractStandaloneStorage implements Storage {
 
     @Override
     public String normalizeKey(String key) {
-        return this.finalPrefix+":"+key;
+        return this.finalPrefix + ":" + key;
     }
 }

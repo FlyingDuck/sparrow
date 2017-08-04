@@ -60,7 +60,7 @@ public class RedisWriterLoaderCacheTest {
                         }
 
                         @Override
-                        public String toJsonString() {
+                        public String toStringValue() {
                             return dataHolder.toString();
                         }
                     };
@@ -81,7 +81,7 @@ public class RedisWriterLoaderCacheTest {
             @Override
             public void write(String key, Cacheable value) throws Exception {
                 System.out.println(TAG+" write");
-                MockDB.DataHolder dataHolder = new MockDB.DataHolder(key, value.toJsonString());
+                MockDB.DataHolder dataHolder = new MockDB.DataHolder(key, value.toStringValue());
                 mockDB.add(dataHolder);
             }
 
@@ -89,7 +89,7 @@ public class RedisWriterLoaderCacheTest {
             public void writeAll(Iterable<? extends Map.Entry<String, Cacheable>> entries) throws BulkCacheWritingException, Exception {
                 System.out.println(TAG+" writeAll");
                 for (Map.Entry<String, Cacheable> entry : entries) {
-                    mockDB.add(new MockDB.DataHolder(entry.getKey(), entry.getValue().toJsonString()));
+                    mockDB.add(new MockDB.DataHolder(entry.getKey(), entry.getValue().toStringValue()));
                 }
             }
 
@@ -150,7 +150,7 @@ public class RedisWriterLoaderCacheTest {
             }
 
             @Override
-            public String toJsonString() {
+            public String toStringValue() {
                 return "{\"name\":\"Bennet\"}";
             }
         };

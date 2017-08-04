@@ -84,7 +84,7 @@ public class RedisLoaderCache extends RedisCache {
             return value;
         } catch (StorageAccessException e) {
             Cacheable loadValue = getFunction.apply(key);
-            return null != loadValue ? loadValue.toJsonString() : null;
+            return null != loadValue ? loadValue.toStringValue() : null;
         }
     }
 }

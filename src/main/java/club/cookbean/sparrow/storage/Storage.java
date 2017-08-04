@@ -27,6 +27,16 @@ public interface Storage extends ConfigurationChangeSupport {
 
     void release();
 
+    boolean exist(String key) throws StorageAccessException;
+
+    boolean expire(String key, long millisecond) throws StorageAccessException;
+
+    boolean expireAt(String key, long timestamp) throws StorageAccessException;
+
+    void delete(String key) throws StorageAccessException;
+
+    void delete(String... keys) throws StorageAccessException;
+
     String get(String key) throws StorageAccessException;
 
     void set(String key, Cacheable value) throws StorageAccessException;
@@ -44,7 +54,7 @@ public interface Storage extends ConfigurationChangeSupport {
 
     @PluralService
     interface Provider extends Service {
-        // TODO
+
         Storage createStorage(Configuration storageConfig);
 
         void releaseStorage(Storage storage);
