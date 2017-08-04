@@ -81,9 +81,4 @@ public class RedisLoaderCache extends RedisCache {
             return null != loadValue ? loadValue.toJsonString() : null;
         }
     }
-
-    @Override
-    public CacheLoader getCacheLoader() {
-        return cacheLoader;
-    }
 }

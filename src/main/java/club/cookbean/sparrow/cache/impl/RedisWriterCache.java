@@ -69,9 +69,4 @@ public class RedisWriterCache extends RedisCache {
             }
         }
     }
-
-    @Override
-    public CacheWriter getCacheWriter() {
-        return this.cacheWriter;
-    }
 }

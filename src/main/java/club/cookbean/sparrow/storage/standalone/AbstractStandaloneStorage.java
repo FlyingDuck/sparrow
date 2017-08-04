@@ -18,9 +18,13 @@ import club.cookbean.sparrow.exception.StorageAccessException;
 import club.cookbean.sparrow.function.SingleFunction;
 import club.cookbean.sparrow.redis.Cacheable;
 import club.cookbean.sparrow.storage.Storage;
-import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.Pipeline;
+
+import java.io.IOException;
 
 /**
  * Created by Bennett Dong <br>
@@ -29,6 +33,7 @@ import redis.clients.jedis.JedisPool;
  * Desc:
  */
 public abstract class AbstractStandaloneStorage implements Storage {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractStandaloneStorage.class);
 
     private JedisPool jedisPool;
     private String finalPrefix;
@@ -48,11 +53,10 @@ public abstract class AbstractStandaloneStorage implements Storage {
     @Override
     public String get(String key) throws StorageAccessException {
         String finalKey = normalizeKey(key);
-        Jedis jedis = jedisPool.getResource();
-        try {
+        try (Jedis jedis = jedisPool.getResource()) {
             return jedis.get(finalKey);
-        } finally {
-            jedis.close();
+        } catch (Exception e) {
+            throw new StorageAccessException(e);
         }
     }
 
@@ -60,12 +64,26 @@ public abstract class AbstractStandaloneStorage implements Storage {
     public void set(String key, Cacheable value) throws StorageAccessException {
         String finalKey = normalizeKey(key);
         Jedis jedis = jedisPool.getResource();
+        Pipeline pipeline = jedis.pipelined();
         try {
-            jedis.set(finalKey, value.toJsonString());
+            pipeline.set(finalKey, value.toJsonString());
+            pipeline.pexpire(finalKey, value.getExpireTime());
+            pipeline.sync();
+        } catch (Exception e) {
+            throw new StorageAccessException(e);
         } finally {
+            if (null != pipeline) {
+                try {
+                    pipeline.close();
+                } catch (IOException e) {
+                    LOGGER.error("Pipeline close fail", e);
+                }
+            }
             jedis.close();
         }
     }
+
+    // ++++++++++++++++++++++++++++ handle ++++++++++++++++++++++++++++
 
     @Override
     public void handleWriteSingle(String key, SingleFunction<String, Cacheable> setFunction) throws StorageAccessException {
