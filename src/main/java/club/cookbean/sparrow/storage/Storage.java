@@ -23,9 +23,13 @@ import club.cookbean.sparrow.redis.RedisConnector;
 import club.cookbean.sparrow.redis.RedisResource;
 import club.cookbean.sparrow.service.Service;
 
+import java.util.List;
+
 public interface Storage extends ConfigurationChangeSupport {
 
     void release();
+
+    // -----------------------  basic operation -----------------------
 
     boolean exist(String key) throws StorageAccessException;
 
@@ -41,16 +45,40 @@ public interface Storage extends ConfigurationChangeSupport {
 
     void set(String key, Cacheable value) throws StorageAccessException;
 
-    // handle write
+    // -----------------------  list operation -----------------------
+    long llen(String key) throws StorageAccessException;
+
+    List<String> lrang(String key, long start, long end) throws StorageAccessException;
+
+    String lindex(String key, long index) throws StorageAccessException;
+
+    long lrem(String key, int count, String valueToRemove) throws StorageAccessException;
+
+    // left ops
+    boolean lpush(String key, Cacheable value) throws StorageAccessException;
+
+    boolean lpush(String key, Cacheable... values) throws StorageAccessException;
+
+    String lpop(String key) throws StorageAccessException;
+
+    // right ops
+    boolean rpush(String key, Cacheable value) throws StorageAccessException;
+
+    boolean rpush(String key, Cacheable... values) throws StorageAccessException;
+
+    String rpop(String key) throws StorageAccessException;
+
+
+    // =============================== handle write ===============================
     void handleDelete(String key, Function<String, Boolean> deleteFunc) throws StorageAccessException;
 
     void handleDeleteAll(String[] keys, Function<Iterable<String>, Boolean> deleteAllFunc) throws StorageAccessException;
 
-    void handleWriteSingle(String key, Function<String, Cacheable> setFunc) throws StorageAccessException;
+    void handleSet(String key, Function<String, Cacheable> setFunc) throws StorageAccessException;
 
 
-    // hand load
-    String handleLoadSingle(String key, Function<String, Cacheable> getFunc) throws StorageAccessException;
+    // =============================== handle load ===============================
+    String handleGet(String key, Function<String, Cacheable> getFunc) throws StorageAccessException;
 
     // TODO ... more functions
 

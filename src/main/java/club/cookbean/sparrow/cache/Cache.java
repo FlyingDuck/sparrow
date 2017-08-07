@@ -22,6 +22,8 @@ import club.cookbean.sparrow.loader.impl.SingleCacheLoader;
 import club.cookbean.sparrow.redis.Cacheable;
 import club.cookbean.sparrow.writer.CacheWriter;
 
+import java.util.List;
+
 /**
  * Created by Bennett Dong <br>
  * E-Mail: dongshujin@xiaomi.com <br>
@@ -45,6 +47,28 @@ public interface Cache extends Loadable, Writable {
 
     void set(String key, Cacheable value) throws CacheWritingException;
 
+    // -----------------------  list operation -----------------------
+    long llen(String key) throws CacheLoadingException;
+
+    List<String> lrang(String key, long start, long end) throws CacheLoadingException;
+
+    String lindex(String key, long index) throws CacheLoadingException;
+
+    long lrem(String key, int count, String valueToRemove) throws CacheWritingException;
+
+    // left ops
+    boolean lpush(String key, Cacheable value) throws CacheWritingException;
+
+    boolean lpush(String key, Cacheable... values) throws CacheWritingException;
+
+    String lpop(String key) throws CacheWritingException;
+
+    // right ops
+    boolean rpush(String key, Cacheable value) throws CacheWritingException;
+
+    boolean rpush(String key, Cacheable... values) throws CacheWritingException;
+
+    String rpop(String key) throws CacheWritingException;
 
 
     CacheRuntimeConfiguration getRuntimeConfiguration();

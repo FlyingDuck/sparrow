@@ -109,7 +109,7 @@ public class RedisWriterCache extends RedisCache {
         });
 
         try {
-            storage.handleWriteSingle(key, setFunction);
+            storage.handleSet(key, setFunction);
         } catch (StorageAccessException ex) {
             try {
                 setFunction.apply(key);

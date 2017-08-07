@@ -12,13 +12,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package club.cookbean.sparrow.operation;
+package club.cookbean.sparrow.operation.impl;
 
 
 import club.cookbean.sparrow.exception.BulkCacheWritingException;
+import club.cookbean.sparrow.operation.BatchOperation;
+import club.cookbean.sparrow.redis.Cacheable;
 import club.cookbean.sparrow.writer.CacheWriter;
 
-public interface BatchWriteOperation {
+import java.util.Map;
 
-    void performOperation(CacheWriter cacheWriter) throws BulkCacheWritingException, Exception;
+public class SetAllOperation implements BatchOperation {
+
+    private final Iterable<? extends Map.Entry<String, Cacheable>> entries;
+
+    public SetAllOperation(Iterable<? extends Map.Entry<String, Cacheable>> entries) {
+        this.entries = entries;
+    }
+
+    @Override
+    public void performOperation(CacheWriter cacheWriter) throws BulkCacheWritingException, Exception {
+        cacheWriter.writeAll(entries);
+    }
 }

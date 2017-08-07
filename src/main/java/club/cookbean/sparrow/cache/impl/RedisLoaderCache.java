@@ -80,7 +80,7 @@ public class RedisLoaderCache extends RedisCache {
         });
 
         try {
-            String value = storage.handleLoadSingle(key, getFunction);
+            String value = storage.handleGet(key, getFunction);
             return value;
         } catch (StorageAccessException e) {
             Cacheable loadValue = getFunction.apply(key);

@@ -40,13 +40,13 @@ public final class StorageSupport {
 
         // check
         if (chooices.isEmpty()) {
-            final StringBuilder sb = new StringBuilder("No Store.Provider found to handleWriteSingle configured resource types ");
+            final StringBuilder sb = new StringBuilder("No Store.Provider found to handleSet configured resource types ");
             sb.append(resourceType);
             sb.append(" from ");
             formatStoreProviders(storeProviders, sb);
             throw new IllegalStateException(sb.toString());
         } else if (chooices.size() > 1) {
-            final StringBuilder sb = new StringBuilder("Multiple Store.Providers found to handleWriteSingle configured resource types ");
+            final StringBuilder sb = new StringBuilder("Multiple Store.Providers found to handleSet configured resource types ");
             sb.append(resourceType);
             sb.append(": ");
             formatStoreProviders(chooices, sb);

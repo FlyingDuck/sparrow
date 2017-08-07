@@ -17,6 +17,8 @@ import club.cookbean.sparrow.storage.Storage;
 import club.cookbean.sparrow.writer.CacheWriter;
 import org.slf4j.Logger;
 
+import java.util.List;
+
 /**
  * Created by Bennett Dong <br>
  * Date : 2017/8/3 <br>
@@ -137,6 +139,129 @@ public class RedisCache implements ExtendCache {
             logger.error("Set exception", e);
         }
     }
+
+    // ----------------------------------- list method -----------------------------------
+
+    @Override
+    public long llen(String key) throws CacheLoadingException {
+        statusTransitioner.checkAvailable();
+        checkNonNull(key);
+        try {
+            return storage.llen(key);
+        } catch (StorageAccessException e) {
+            logger.error("List length exception", e);
+        }
+        return 0;
+    }
+
+    @Override
+    public List<String> lrang(String key, long start, long end) throws CacheLoadingException {
+        statusTransitioner.checkAvailable();
+        checkNonNull(key);
+        try {
+            return storage.lrang(key, start, end);
+        } catch (StorageAccessException e) {
+            logger.error("List range exception", e);
+        }
+        return null;
+    }
+
+    @Override
+    public String lindex(String key, long index) throws CacheLoadingException {
+        statusTransitioner.checkAvailable();
+        checkNonNull(key);
+        try {
+            return storage.lindex(key, index);
+        } catch (StorageAccessException e) {
+            logger.error("List index exception", e);
+        }
+        return null;
+    }
+
+    @Override
+    public long lrem(String key, int count, String valueToRemove) throws CacheWritingException {
+        statusTransitioner.checkAvailable();
+        checkNonNull(key);
+        try {
+            return storage.lrem(key, count, valueToRemove);
+        } catch (StorageAccessException e) {
+            logger.error("List remove exception", e);
+        }
+        return 0;
+    }
+
+    @Override
+    public boolean lpush(String key, Cacheable value) throws CacheWritingException {
+        statusTransitioner.checkAvailable();
+        checkNonNull(key, value);
+        try {
+            return storage.lpush(key, value);
+        } catch (StorageAccessException e) {
+            logger.error("List left push exception", e);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean lpush(String key, Cacheable... values) throws CacheWritingException {
+        statusTransitioner.checkAvailable();
+        checkNonNull(key, values);
+        try {
+            return storage.lpush(key, values);
+        } catch (StorageAccessException e) {
+            logger.error("List left push exception", e);
+        }
+        return false;
+    }
+
+    @Override
+    public String lpop(String key) throws CacheWritingException {
+        statusTransitioner.checkAvailable();
+        checkNonNull(key);
+        try {
+            return storage.lpop(key);
+        } catch (StorageAccessException e) {
+            logger.error("List left pop exception", e);
+        }
+        return null;
+    }
+
+    @Override
+    public boolean rpush(String key, Cacheable value) throws CacheWritingException {
+        statusTransitioner.checkAvailable();
+        checkNonNull(key, value);
+        try {
+            return storage.rpush(key, value);
+        } catch (StorageAccessException e) {
+            logger.error("List right push exception", e);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean rpush(String key, Cacheable... values) throws CacheWritingException {
+        statusTransitioner.checkAvailable();
+        checkNonNull(key, values);
+        try {
+            return storage.rpush(key, values);
+        } catch (StorageAccessException e) {
+            logger.error("List right push exception", e);
+        }
+        return false;
+    }
+
+    @Override
+    public String rpop(String key) throws CacheWritingException {
+        statusTransitioner.checkAvailable();
+        checkNonNull(key);
+        try {
+            return storage.rpop(key);
+        } catch (StorageAccessException e) {
+            logger.error("List right pop exception", e);
+        }
+        return null;
+    }
+
 
     // ----------------------------------- loader method -----------------------------------
 
