@@ -4,6 +4,7 @@ import club.cookbean.sparrow.exception.BulkCacheLoadingException;
 import club.cookbean.sparrow.loader.CacheLoader;
 import club.cookbean.sparrow.redis.Cacheable;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -15,7 +16,7 @@ import java.util.Map;
 public abstract class SingleCacheLoader implements CacheLoader {
 
     @Override
-    public Map<String, Cacheable> loadAll(Iterable<String> keys) throws BulkCacheLoadingException, Exception {
-        throw new UnsupportedOperationException("Single Cache Loader cannot load all");
+    public List<Cacheable> loadListRange(String key, long start, long end) throws Exception {
+        throw new UnsupportedOperationException("SingleCacheLoader cannot load list range");
     }
 }

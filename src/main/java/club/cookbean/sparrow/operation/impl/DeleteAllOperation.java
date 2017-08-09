@@ -16,10 +16,10 @@ package club.cookbean.sparrow.operation.impl;
 
 
 import club.cookbean.sparrow.exception.BulkCacheWritingException;
-import club.cookbean.sparrow.operation.BatchWriteOperation;
+import club.cookbean.sparrow.operation.BatchOperation;
 import club.cookbean.sparrow.writer.CacheWriter;
 
-public class DeleteAllOperation implements BatchWriteOperation {
+public class DeleteAllOperation implements BatchOperation {
 
     private final Iterable<String> entries;
 

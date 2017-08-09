@@ -15,18 +15,18 @@
 package club.cookbean.sparrow.function.impl;
 
 
-import club.cookbean.sparrow.function.SingleFunction;
+import club.cookbean.sparrow.function.Function;
 
-public class MemoizingSingleFunction<A, R> implements SingleFunction<A, R> {
-    private final SingleFunction<A, R> function;
+public class MemoizingFunction<A, R> implements Function<A, R> {
+    private final Function<A, R> function;
     private boolean handled;
     private R value;
 
-    public static <A, R> MemoizingSingleFunction<A, R> memoize(SingleFunction<A, R> function) {
-        return new MemoizingSingleFunction<>(function);
+    public static <A, R> MemoizingFunction<A, R> memoize(Function<A, R> function) {
+        return new MemoizingFunction<>(function);
     }
 
-    private MemoizingSingleFunction(SingleFunction<A, R> pairFunction) {
+    private MemoizingFunction(Function<A, R> pairFunction) {
         this.function = pairFunction;
     }
 

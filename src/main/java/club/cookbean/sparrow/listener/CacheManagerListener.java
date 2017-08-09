@@ -31,7 +31,7 @@ public interface CacheManagerListener extends StateChangeListener {
 
     /**
      * Fires just after the @{link Cache} was deregistered with the {@link club.cookbean.sparrow.cache.CacheManager}, but wasn't yet made
-     * {@link club.cookbean.sparrow.cache.Status#UNINITIALIZED}. So that no other thread can get a handleWriteSingle to this {@link Cache} anymore,
+     * {@link club.cookbean.sparrow.cache.Status#UNINITIALIZED}. So that no other thread can get a handleSet to this {@link Cache} anymore,
      * but the {@link CacheManagerListener} can still interact with it
      *
      * @param alias the alias the {@link Cache} is being deregistered

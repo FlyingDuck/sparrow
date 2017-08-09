@@ -17,34 +17,78 @@ package club.cookbean.sparrow.storage;
 
 import club.cookbean.sparrow.annotation.PluralService;
 import club.cookbean.sparrow.exception.StorageAccessException;
-import club.cookbean.sparrow.function.SingleFunction;
+import club.cookbean.sparrow.function.Function;
+import club.cookbean.sparrow.function.RangeFunction;
 import club.cookbean.sparrow.redis.Cacheable;
 import club.cookbean.sparrow.redis.RedisConnector;
 import club.cookbean.sparrow.redis.RedisResource;
 import club.cookbean.sparrow.service.Service;
 
+import java.util.List;
+
 public interface Storage extends ConfigurationChangeSupport {
 
     void release();
+
+    // -----------------------  basic operation -----------------------
+
+    boolean exist(String key) throws StorageAccessException;
+
+    boolean expire(String key, long millisecond) throws StorageAccessException;
+
+    boolean expireAt(String key, long timestamp) throws StorageAccessException;
+
+    void delete(String key) throws StorageAccessException;
+
+    void delete(String... keys) throws StorageAccessException;
 
     String get(String key) throws StorageAccessException;
 
     void set(String key, Cacheable value) throws StorageAccessException;
 
-    // handle write
-    void handleWriteSingle(String key, SingleFunction<String, Cacheable> setFunction) throws StorageAccessException;
+    // -----------------------  list operation -----------------------
+    long llen(String key) throws StorageAccessException;
+
+    List<String> lrang(String key, long start, long end) throws StorageAccessException;
+
+    String lindex(String key, long index) throws StorageAccessException;
+
+    long lrem(String key, int count, String valueToRemove) throws StorageAccessException;
+
+    // left ops
+    boolean lpush(String key, Cacheable value) throws StorageAccessException;
+
+    boolean lpush(String key, Cacheable... values) throws StorageAccessException;
+
+    String lpop(String key) throws StorageAccessException;
+
+    // right ops
+    boolean rpush(String key, Cacheable value) throws StorageAccessException;
+
+    boolean rpush(String key, Cacheable... values) throws StorageAccessException;
+
+    String rpop(String key) throws StorageAccessException;
 
 
-    // hand load
-    String handleLoadSingle(String key, SingleFunction<String, Cacheable> getFunction) throws StorageAccessException;
+    // =============================== handle write ===============================
+    void handleDelete(String key, Function<String, Boolean> deleteFunc) throws StorageAccessException;
 
-    // TODO ... more functions
+    void handleDeleteAll(String[] keys, Function<Iterable<String>, Boolean> deleteAllFunc) throws StorageAccessException;
+
+    void handleSet(String key, Function<String, Cacheable> setFunc) throws StorageAccessException;
+
+
+    // =============================== handle load ===============================
+    String handleGet(String key, Function<String, Cacheable> getFunc) throws StorageAccessException;
+
+    List<String> handleListRange(String key, long start, long end, RangeFunction<String, Long, Long, Cacheable> rangeFunction) throws StorageAccessException;
+
 
     String normalizeKey(String key);
 
     @PluralService
     interface Provider extends Service {
-        // TODO
+
         Storage createStorage(Configuration storageConfig);
 
         void releaseStorage(Storage storage);

@@ -15,7 +15,8 @@
 package club.cookbean.sparrow.storage.standalone;
 
 import club.cookbean.sparrow.exception.StorageAccessException;
-import club.cookbean.sparrow.function.SingleFunction;
+import club.cookbean.sparrow.function.Function;
+import club.cookbean.sparrow.function.RangeFunction;
 import club.cookbean.sparrow.redis.Cacheable;
 import club.cookbean.sparrow.storage.Storage;
 import org.slf4j.Logger;
@@ -25,6 +26,9 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.Pipeline;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -52,12 +56,82 @@ public abstract class AbstractStandaloneStorage implements Storage {
     }
 
     @Override
+    public boolean exist(String key) throws StorageAccessException {
+        String finalKey = normalizeKey(key);
+        Jedis jedis = jedisPool.getResource();
+        try {
+            return jedis.exists(finalKey);
+        } catch (Exception e) {
+            throw new StorageAccessException(e);
+        } finally {
+            if (null != jedis)
+                jedis.close();
+        }
+    }
+
+    @Override
+    public boolean expire(String key, long millisecond) throws StorageAccessException {
+        String finalKey = normalizeKey(key);
+        Jedis jedis = jedisPool.getResource();
+        try {
+            Long result = jedis.pexpire(finalKey, millisecond);
+            return null != result && result > 0;
+        } catch (Exception e) {
+            throw new StorageAccessException(e);
+        } finally {
+            if (null != jedis)
+                jedis.close();
+        }
+    }
+
+    @Override
+    public boolean expireAt(String key, long timestamp) throws StorageAccessException {
+        String finalKey = normalizeKey(key);
+        Jedis jedis = jedisPool.getResource();
+        try {
+            Long result = jedis.pexpireAt(finalKey, timestamp);
+            return null != result && result > 0;
+        } catch (Exception e) {
+            throw new StorageAccessException(e);
+        } finally {
+            if (null != jedis)
+                jedis.close();
+        }
+    }
+
+    @Override
+    public void delete(String key) throws StorageAccessException {
+        delete(new String[]{key});
+    }
+
+    @Override
+    public void delete(String... keys) throws StorageAccessException {
+        String[] finalKeys = new String[keys.length];
+        for (int i = 0; i < keys.length; i++) {
+            finalKeys[i] = normalizeKey(keys[i]);
+        }
+        Jedis jedis = jedisPool.getResource();
+        try {
+            jedis.del(finalKeys);
+        } catch (Exception e) {
+            throw new StorageAccessException(e);
+        } finally {
+            if (null != jedis)
+                jedis.close();
+        }
+    }
+
+    @Override
     public String get(String key) throws StorageAccessException {
         String finalKey = normalizeKey(key);
-        try (Jedis jedis = jedisPool.getResource()) {
+        Jedis jedis = jedisPool.getResource();
+        try {
             return jedis.get(finalKey);
         } catch (Exception e) {
             throw new StorageAccessException(e);
+        } finally {
+            if (null != jedis)
+                jedis.close();
         }
     }
 
@@ -67,7 +141,7 @@ public abstract class AbstractStandaloneStorage implements Storage {
         Jedis jedis = jedisPool.getResource();
         Pipeline pipeline = jedis.pipelined();
         try {
-            pipeline.set(finalKey, value.toJsonString());
+            pipeline.set(finalKey, value.toStringValue());
             pipeline.pexpire(finalKey, value.getExpireTime());
             //List<Object> result = pipeline.syncAndReturnAll();
             pipeline.sync();
@@ -85,26 +159,197 @@ public abstract class AbstractStandaloneStorage implements Storage {
         }
     }
 
+    // ++++++++++++++++++++++++++++ list ++++++++++++++++++++++++++++
+
+    @Override
+    public long llen(String key) throws StorageAccessException {
+        String finalKey = normalizeKey(key);
+        Jedis jedis = jedisPool.getResource();
+        try {
+            return jedis.llen(finalKey);
+        } catch (Exception e) {
+            throw new StorageAccessException(e);
+        } finally {
+            if (null != jedis)
+                jedis.close();
+        }
+    }
+
+    @Override
+    public List<String> lrang(String key, long start, long end) throws StorageAccessException {
+        String finalKey = normalizeKey(key);
+        Jedis jedis = jedisPool.getResource();
+        try {
+            return jedis.lrange(finalKey, start, end);
+        } catch (Exception e) {
+            throw new StorageAccessException(e);
+        } finally {
+            if (null != jedis)
+                jedis.close();
+        }
+    }
+
+    @Override
+    public String lindex(String key, long index) throws StorageAccessException {
+        String finalKey = normalizeKey(key);
+        Jedis jedis = jedisPool.getResource();
+        try {
+            return jedis.lindex(finalKey, index);
+        } catch (Exception e) {
+            throw new StorageAccessException(e);
+        } finally {
+            if (null != jedis)
+                jedis.close();
+        }
+    }
+
+    @Override
+    public long lrem(String key, int count, String valueToRemove) throws StorageAccessException {
+        String finalKey = normalizeKey(key);
+        Jedis jedis = jedisPool.getResource();
+        try {
+            return jedis.lrem(finalKey, count, valueToRemove);
+        } catch (Exception e) {
+            throw new StorageAccessException(e);
+        } finally {
+            if (null != jedis)
+                jedis.close();
+        }
+    }
+
+    @Override
+    public boolean lpush(String key, Cacheable value) throws StorageAccessException {
+        String finalKey = normalizeKey(key);
+        Jedis jedis = jedisPool.getResource();
+        try {
+            Long result =  jedis.lpush(finalKey, value.toStringValue());
+            return result!=null && result>0;
+        } catch (Exception e) {
+            throw new StorageAccessException(e);
+        } finally {
+            if (null != jedis)
+                jedis.close();
+        }
+    }
+
+    @Override
+    public boolean lpush(String key, Cacheable... values) throws StorageAccessException {
+        String finalKey = normalizeKey(key);
+        Jedis jedis = jedisPool.getResource();
+        try {
+            String[] strArray = new String[values.length];
+            for (int i=0; i<values.length; i++) {
+                strArray[i] = values[i].toStringValue();
+            }
+            Long result = jedis.lpush(finalKey, strArray);
+            return result != null && result > 0;
+        } catch (Exception e) {
+            throw new StorageAccessException(e);
+        } finally {
+            if (null != jedis)
+                jedis.close();
+        }
+    }
+
+    @Override
+    public String lpop(String key) throws StorageAccessException {
+        String finalKey = normalizeKey(key);
+        Jedis jedis = jedisPool.getResource();
+        try {
+            return jedis.lpop(finalKey);
+        } catch (Exception e) {
+            throw new StorageAccessException(e);
+        } finally {
+            if (null != jedis)
+                jedis.close();
+        }
+    }
+
+    @Override
+    public boolean rpush(String key, Cacheable value) throws StorageAccessException {
+        String finalKey = normalizeKey(key);
+        Jedis jedis = jedisPool.getResource();
+        try {
+            Long result = jedis.rpush(finalKey, value.toStringValue());
+            return result != null && result > 0;
+        } catch (Exception e) {
+            throw new StorageAccessException(e);
+        } finally {
+            if (null != jedis)
+                jedis.close();
+        }
+    }
+
+    @Override
+    public boolean rpush(String key, Cacheable... values) throws StorageAccessException {
+        String finalKey = normalizeKey(key);
+        Jedis jedis = jedisPool.getResource();
+        try {
+            String[] strArray = new String[values.length];
+            for (int i=0; i<values.length; i++) {
+                strArray[i] = values[i].toStringValue();
+            }
+            Long result = jedis.rpush(finalKey, strArray);
+            return result != null && result > 0;
+        } catch (Exception e) {
+            throw new StorageAccessException(e);
+        } finally {
+            if (null != jedis)
+                jedis.close();
+        }
+    }
+
+    @Override
+    public String rpop(String key) throws StorageAccessException {
+        String finalKey = normalizeKey(key);
+        Jedis jedis = jedisPool.getResource();
+        try {
+            return jedis.rpop(finalKey);
+        } catch (Exception e) {
+            throw new StorageAccessException(e);
+        } finally {
+            if (null != jedis)
+                jedis.close();
+        }
+    }
+
+
     // ++++++++++++++++++++++++++++ handle ++++++++++++++++++++++++++++
 
     @Override
-    public void handleWriteSingle(String key, SingleFunction<String, Cacheable> setFunction) throws StorageAccessException {
+    public void handleDelete(String key, Function<String, Boolean> deleteFunc) throws StorageAccessException {
+        Boolean delete = deleteFunc.apply(key);
+        if (null != delete && delete) {
+            this.delete(key);
+        }
+    }
+
+    @Override
+    public void handleDeleteAll(String[] keys, Function<Iterable<String>, Boolean> deleteAllFunc) throws StorageAccessException {
+        Boolean delete = deleteAllFunc.apply(Arrays.asList(keys));
+        if (null != delete && delete) {
+            this.delete(keys);
+        }
+    }
+
+    @Override
+    public void handleSet(String key, Function<String, Cacheable> setFunc) throws StorageAccessException {
         // 先 write, 后写 Cache
-        Cacheable value = setFunction.apply(key);
+        Cacheable value = setFunc.apply(key);
         if (null != value) {
             this.set(key, value);
         }
     }
 
     @Override
-    public String handleLoadSingle(String key, SingleFunction<String, Cacheable> getFunction) throws StorageAccessException {
+    public String handleGet(String key, Function<String, Cacheable> getFunc) throws StorageAccessException {
         // 先读
         String value = this.get(key);
         // Cache 中不存在 则 load, 后写 Cache
         if (null == value) {
-            Cacheable loadValue = getFunction.apply(key);
+            Cacheable loadValue = getFunc.apply(key);
             if (null != loadValue) {
-                value = loadValue.toJsonString();
+                value = loadValue.toStringValue();
                 this.set(key, loadValue);
             }
         }
@@ -112,7 +357,26 @@ public abstract class AbstractStandaloneStorage implements Storage {
     }
 
     @Override
+    public List<String> handleListRange(String key, long start, long end, RangeFunction<String, Long, Long, Cacheable> rangeFunction) throws StorageAccessException {
+        List<String> values = this.lrang(key, start, end);
+        if (null == values || values.isEmpty()) {
+            List<Cacheable> loadValues = rangeFunction.apply(key, start, end);
+            if (null != loadValues && !loadValues.isEmpty()) {
+                values = new ArrayList<>(loadValues.size());
+                Cacheable[] loadArray = new Cacheable[loadValues.size()];
+                for (int i=0, size = loadValues.size(); i<size; i++) {
+                    loadArray[i] = loadValues.get(i);
+                    values.add(loadValues.get(i).toStringValue());
+                }
+                // todo left operation or right operation ?
+                this.lpush(key, loadArray);
+            }
+        }
+        return values;
+    }
+
+    @Override
     public String normalizeKey(String key) {
-        return this.finalPrefix+":"+key;
+        return this.finalPrefix + ":" + key;
     }
 }

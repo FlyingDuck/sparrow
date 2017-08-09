@@ -15,7 +15,7 @@
 package club.cookbean.sparrow.writer.impl;
 
 import club.cookbean.sparrow.config.WriteBehindConfiguration;
-import club.cookbean.sparrow.operation.SingleWriteOperation;
+import club.cookbean.sparrow.operation.SingleOperation;
 import club.cookbean.sparrow.service.ExecutionService;
 import club.cookbean.sparrow.util.ExecutorUtil;
 import club.cookbean.sparrow.writer.CacheWriter;
@@ -28,7 +28,7 @@ public class NonBatchingWriteBehindQueue extends AbstractWriteBehind {
     private static final Logger LOGGER = LoggerFactory.getLogger(NonBatchingWriteBehindQueue.class);
 
     private final CacheWriter cacheWriter;
-    private final ConcurrentMap<String, SingleWriteOperation> latest = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, SingleOperation> latest = new ConcurrentHashMap<>();
     private final BlockingQueue<Runnable> executorQueue;
     private final ExecutorService executor;
 
@@ -47,12 +47,12 @@ public class NonBatchingWriteBehindQueue extends AbstractWriteBehind {
     }
 
     @Override
-    protected SingleWriteOperation getOperation(String key) {
+    protected SingleOperation getOperation(String key) {
         return latest.get(key);
     }
 
     @Override
-    protected void addOperation(final SingleWriteOperation operation) {
+    protected void addOperation(final SingleOperation operation) {
         latest.put(operation.getKey(), operation);
 
         submit(new Runnable() {

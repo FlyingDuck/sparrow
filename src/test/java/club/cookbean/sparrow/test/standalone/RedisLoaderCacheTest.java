@@ -15,6 +15,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import redis.clients.jedis.HostAndPort;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -59,7 +60,7 @@ public class RedisLoaderCacheTest {
                         }
 
                         @Override
-                        public String toJsonString() {
+                        public String toStringValue() {
                             return dataHolder.toString();
                         }
                     };
@@ -68,7 +69,8 @@ public class RedisLoaderCacheTest {
             }
 
             @Override
-            public Map<String, Cacheable> loadAll(Iterable<String> keys) throws BulkCacheLoadingException, Exception {
+            public List<Cacheable> loadListRange(String key, long start, long end) throws Exception {
+                // todo
                 return null;
             }
         };
@@ -125,7 +127,7 @@ public class RedisLoaderCacheTest {
                         }
 
                         @Override
-                        public String toJsonString() {
+                        public String toStringValue() {
                             return "SingleLoader-"+key;
                         }
                     };

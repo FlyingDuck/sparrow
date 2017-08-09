@@ -17,9 +17,9 @@ package club.cookbean.sparrow.writer.impl;
 
 import club.cookbean.sparrow.exception.BulkCacheWritingException;
 import club.cookbean.sparrow.exception.CacheWritingException;
-import club.cookbean.sparrow.operation.SingleWriteOperation;
+import club.cookbean.sparrow.operation.SingleOperation;
 import club.cookbean.sparrow.operation.impl.DeleteOperation;
-import club.cookbean.sparrow.operation.impl.WriteOperation;
+import club.cookbean.sparrow.operation.impl.SetOperation;
 import club.cookbean.sparrow.redis.Cacheable;
 import club.cookbean.sparrow.writer.CacheWriter;
 import club.cookbean.sparrow.writer.WriteBehind;
@@ -42,7 +42,7 @@ public abstract class AbstractWriteBehind implements WriteBehind {
 
     @Override
     public void write(String key, Cacheable value) throws CacheWritingException {
-        addOperation(new WriteOperation(key, value));
+        addOperation(new SetOperation(key, value));
     }
 
     @Override
@@ -64,9 +64,9 @@ public abstract class AbstractWriteBehind implements WriteBehind {
         }
     }
 
-    protected abstract SingleWriteOperation getOperation(String key);
+    protected abstract SingleOperation getOperation(String key);
 
-    protected abstract void addOperation(final SingleWriteOperation operation);
+    protected abstract void addOperation(final SingleOperation operation);
 
     protected static <T> void putUninterruptibly(BlockingQueue<T> queue, T r) {
         boolean interrupted = false;

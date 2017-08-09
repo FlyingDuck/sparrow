@@ -17,12 +17,17 @@ package club.cookbean.sparrow.cache.impl;
 import club.cookbean.sparrow.config.CacheConfiguration;
 import club.cookbean.sparrow.exception.CacheLoadingException;
 import club.cookbean.sparrow.exception.StorageAccessException;
-import club.cookbean.sparrow.function.SingleFunction;
-import club.cookbean.sparrow.function.impl.MemoizingSingleFunction;
+import club.cookbean.sparrow.function.Function;
+import club.cookbean.sparrow.function.RangeFunction;
+import club.cookbean.sparrow.function.impl.MemoizingFunction;
+import club.cookbean.sparrow.function.impl.MemoizingRangeFunction;
 import club.cookbean.sparrow.loader.CacheLoader;
 import club.cookbean.sparrow.redis.Cacheable;
 import club.cookbean.sparrow.storage.Storage;
 import org.slf4j.Logger;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Bennett Dong <br>
@@ -61,30 +66,65 @@ public class RedisLoaderCache extends RedisCache {
     }
 
     @Override
-    public String getWithLoader(String key, final CacheLoader singleCacheLoader)
+    public String getWithLoader(String key, final CacheLoader definedCacheLoader)
             throws CacheLoadingException {
         this.statusTransitioner.checkAvailable();
         checkNonNull(key);
 
-        SingleFunction<String, Cacheable> getFunction = MemoizingSingleFunction.memoize(new SingleFunction<String, Cacheable>() {
+        Function<String, Cacheable> getFunction = MemoizingFunction.memoize(new Function<String, Cacheable>() {
             @Override
             public Cacheable apply(String key) {
                 Cacheable value = null;
                 try {
-                    value = singleCacheLoader.load(key);
+                    value = definedCacheLoader.load(key);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    logger.error(e.getMessage(), e);
                 }
                 return value;
             }
         });
 
         try {
-            String value = storage.handleLoadSingle(key, getFunction);
+            String value = storage.handleGet(key, getFunction);
             return value;
         } catch (StorageAccessException e) {
             Cacheable loadValue = getFunction.apply(key);
-            return null != loadValue ? loadValue.toJsonString() : null;
+            return null != loadValue ? loadValue.toStringValue() : null;
+        }
+    }
+
+    @Override
+    public List<String> lrangeWithLoader(String key, long start, long end) {
+        return lrangeWithLoader(key, start, end, this.cacheLoader);
+    }
+
+    @Override
+    public List<String> lrangeWithLoader(String key, long start, long end, final CacheLoader definedCacheLoader) throws CacheLoadingException {
+        this.statusTransitioner.checkAvailable();
+        checkNonNull(key);
+
+        RangeFunction<String, Long, Long, Cacheable> rangeFunction = MemoizingRangeFunction.memoize(new RangeFunction<String, Long, Long, Cacheable>() {
+            @Override
+            public List<Cacheable> apply(String key, Long start, Long end) {
+                List<Cacheable> values = null;
+                try {
+                    values = definedCacheLoader.loadListRange(key, start, end);
+                } catch (Exception e) {
+                    logger.error(e.getMessage(), e);
+                }
+                return values;
+            }
+        });
+
+        try {
+            return storage.handleListRange(key, start, end, rangeFunction);
+        } catch (StorageAccessException e) {
+            List<Cacheable> valueObjs = rangeFunction.apply(key, start, end);
+            List<String> values = new ArrayList<>(valueObjs.size());
+            for (Cacheable obj : valueObjs) {
+                values.add(obj.toStringValue());
+            }
+            return values;
         }
     }
 }

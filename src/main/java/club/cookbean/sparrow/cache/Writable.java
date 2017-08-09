@@ -26,6 +26,10 @@ import club.cookbean.sparrow.writer.CacheWriter;
  */
 public interface Writable {
 
+    void deleteWithWriter(String key) throws CacheWritingException;
+
+    void deleteAllWithWriter(String... key) throws CacheWritingException;
+
     void setWithWriter(String key, Cacheable value) throws CacheWritingException;
 
     void setWithWriter(String key, Cacheable value, CacheWriter cacheWriter) throws CacheWritingException;

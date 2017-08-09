@@ -12,12 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package club.cookbean.sparrow.operation;
+package club.cookbean.sparrow.function;
 
+public interface Function<A, R> {
 
-import club.cookbean.sparrow.loader.CacheLoader;
-
-public interface SingleLoadOperation extends KeyBasedOperation {
-
-    void preformOperation(CacheLoader cacheLoader) throws Exception;
+    R apply(A paramA);
 }

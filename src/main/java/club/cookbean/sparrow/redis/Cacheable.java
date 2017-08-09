@@ -16,9 +16,21 @@ package club.cookbean.sparrow.redis;
 
 public interface Cacheable {
 
+    /**
+     * Cache value expire duration
+     * @return expire duration in millisecond
+     */
     long getExpireTime();
 
+    /**
+     * Cache value create time
+     * @return create time int millisecond
+     */
     long getCreationTime();
 
-    String toJsonString();
+    /**
+     * Get string type value
+     * @return string value
+     */
+    String toStringValue();
 }

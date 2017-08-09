@@ -14,7 +14,15 @@
  */
 package club.cookbean.sparrow.function;
 
-public interface SingleFunction<A, R> {
+import java.util.List;
 
-    R apply(A paramA);
+/**
+ * Created by Bennett Dong <br>
+ * Date : 2017/8/7 <br>
+ * Mail: dongshujin.beans@gmail.com <br> <br>
+ * Desc:
+ */
+public interface RangeFunction<A, B, C, R> {
+
+    List<R> apply(A key, B start, C end);
 }

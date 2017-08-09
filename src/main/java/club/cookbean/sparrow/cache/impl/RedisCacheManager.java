@@ -69,7 +69,7 @@ public class RedisCacheManager implements InternalCacheManager {
         this(configuration, services, true);
     }
 
-    public RedisCacheManager(Configuration configuration, Collection<Service> services, boolean useLoaderInAtomics) {
+    RedisCacheManager(Configuration configuration, Collection<Service> services, boolean useLoaderInAtomics) {
         final String simpleName = this.getClass().getSimpleName();
         this.simpleName = (simpleName.isEmpty() ? this.getClass().getName() : simpleName);
         this.configuration = new DefaultConfiguration(configuration);
@@ -227,7 +227,7 @@ public class RedisCacheManager implements InternalCacheManager {
             }
         }
         if (!unknownServiceConfigs.isEmpty()) {
-            throw new IllegalStateException("Cannot find service(s) that can handleWriteSingle following configuration(s) : " + unknownServiceConfigs);
+            throw new IllegalStateException("Cannot find service(s) that can handleSet following configuration(s) : " + unknownServiceConfigs);
         }
 
         List<LifeCycled> lifeCycledList = new ArrayList<>();

@@ -6,10 +6,12 @@ import club.cookbean.sparrow.builder.RedisConnectorBuilder;
 import club.cookbean.sparrow.builder.RedisResourceBuilder;
 import club.cookbean.sparrow.cache.Cache;
 import club.cookbean.sparrow.cache.CacheManager;
+import club.cookbean.sparrow.cache.impl.RedisCache;
 import club.cookbean.sparrow.exception.BulkCacheWritingException;
 import club.cookbean.sparrow.redis.Cacheable;
 import club.cookbean.sparrow.test.db.MockDB;
 import club.cookbean.sparrow.writer.CacheWriter;
+import club.cookbean.sparrow.writer.impl.SingleCacheWriter;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import redis.clients.jedis.HostAndPort;
@@ -29,7 +31,6 @@ public class RedisWriterCacheTest {
     private static CacheManager cacheManager;
     private static Cache standaloneCache;
 
-
     @BeforeClass
     public static void beforeClass() {
         // cache writer
@@ -39,7 +40,7 @@ public class RedisWriterCacheTest {
             @Override
             public void write(String key, Cacheable value) throws Exception {
                 System.out.println(TAG+" write");
-                MockDB.DataHolder dataHolder = new MockDB.DataHolder(key, value.toJsonString());
+                MockDB.DataHolder dataHolder = new MockDB.DataHolder(key, value.toStringValue());
                 mockDB.add(dataHolder);
             }
 
@@ -47,7 +48,7 @@ public class RedisWriterCacheTest {
             public void writeAll(Iterable<? extends Map.Entry<String, Cacheable>> entries) throws BulkCacheWritingException, Exception {
                 System.out.println(TAG+" writeAll");
                 for (Map.Entry<String, Cacheable> entry : entries) {
-                    mockDB.add(new MockDB.DataHolder(entry.getKey(), entry.getValue().toJsonString()));
+                    mockDB.add(new MockDB.DataHolder(entry.getKey(), entry.getValue().toStringValue()));
                 }
             }
 
@@ -98,19 +99,49 @@ public class RedisWriterCacheTest {
             }
 
             @Override
-            public String toJsonString() {
+            public String toStringValue() {
                 return "{\"name\":\"Bennet\"}";
             }
         };
         standaloneCache.set(key, cacheValue);
 
-        value = standaloneCache.get(key);
+        value = standaloneCache.getWithLoader(key);
         System.out.println("value="+value);
     }
 
     @Test
     public void testSetWiter() {
+        String key = "cache";
 
+        Cacheable cacheValue = new Cacheable() {
+            @Override
+            public long getExpireTime() {
+                return 10000;
+            }
+
+            @Override
+            public long getCreationTime() {
+                return System.currentTimeMillis();
+            }
+
+            @Override
+            public String toStringValue() {
+                return "{\"name\":\"Bennet\"}";
+            }
+        };
+
+        standaloneCache.setWithWriter(key, cacheValue, new SingleCacheWriter() {
+            @Override
+            public void write(String key, Cacheable value) throws Exception {
+                mockDB.add(new MockDB.DataHolder(key, "set with writer"));
+            }
+        });
+
+        String value = standaloneCache.get(key);
+        System.out.println("cache value = " + value);
+
+        MockDB.DataHolder holder = mockDB.get(key);
+        System.out.println("db value = " + holder);
     }
 
 

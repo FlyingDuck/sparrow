@@ -16,12 +16,12 @@ package club.cookbean.sparrow.writer.impl;
 
 import club.cookbean.sparrow.config.BatchingConfiguration;
 import club.cookbean.sparrow.config.WriteBehindConfiguration;
-import club.cookbean.sparrow.operation.BatchWriteOperation;
-import club.cookbean.sparrow.operation.SingleWriteOperation;
+import club.cookbean.sparrow.operation.BatchOperation;
+import club.cookbean.sparrow.operation.SingleOperation;
 import club.cookbean.sparrow.operation.impl.DeleteAllOperation;
 import club.cookbean.sparrow.operation.impl.DeleteOperation;
-import club.cookbean.sparrow.operation.impl.WriteAllOperation;
-import club.cookbean.sparrow.operation.impl.WriteOperation;
+import club.cookbean.sparrow.operation.impl.SetAllOperation;
+import club.cookbean.sparrow.operation.impl.SetOperation;
 import club.cookbean.sparrow.redis.Cacheable;
 import club.cookbean.sparrow.service.ExecutionService;
 import club.cookbean.sparrow.util.ExecutorUtil;
@@ -39,7 +39,7 @@ public class BatchingWriteBehindQueue extends AbstractWriteBehind {
 
     private final CacheWriter cacheWriter;
 
-    private final ConcurrentMap<String, SingleWriteOperation> latest = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, SingleOperation> latest = new ConcurrentHashMap<>();
 
     private final BlockingQueue<Runnable> executorQueue;
     private final ExecutorService executor;
@@ -76,12 +76,12 @@ public class BatchingWriteBehindQueue extends AbstractWriteBehind {
 
 
     @Override
-    protected SingleWriteOperation getOperation(String key) {
+    protected SingleOperation getOperation(String key) {
         return latest.get(key);
     }
 
     @Override
-    protected void addOperation(SingleWriteOperation operation) {
+    protected void addOperation(SingleOperation operation) {
         latest.put(operation.getKey(), operation);
 
         synchronized (this) {
@@ -168,23 +168,23 @@ public class BatchingWriteBehindQueue extends AbstractWriteBehind {
             }, maxWriteDelayMs, MILLISECONDS);
         }
 
-        public boolean add(SingleWriteOperation operation) {
+        public boolean add(SingleOperation operation) {
             internalAdd(operation);
             return size() >= batchSize;
         }
 
-        protected abstract void internalAdd(SingleWriteOperation operation);
+        protected abstract void internalAdd(SingleOperation operation);
 
-        protected abstract Iterable<SingleWriteOperation> operations();
+        protected abstract Iterable<SingleOperation> operations();
 
         protected abstract int size();
 
         @Override
         public void run() {
             try {
-                List<BatchWriteOperation> batches = createMonomorphicBatches(operations());
+                List<BatchOperation> batches = createMonomorphicBatches(operations());
                 // execute the batch operations
-                for (BatchWriteOperation batch : batches) {
+                for (BatchOperation batch : batches) {
                     try {
                         batch.performOperation(cacheWriter);
                     } catch (Exception e) {
@@ -193,7 +193,7 @@ public class BatchingWriteBehindQueue extends AbstractWriteBehind {
                 }
             } finally {
                 try {
-                    for (SingleWriteOperation op : operations()) {
+                    for (SingleOperation op : operations()) {
                         latest.remove(op.getKey(), op);
                     }
                 } finally {
@@ -207,20 +207,20 @@ public class BatchingWriteBehindQueue extends AbstractWriteBehind {
 
     private class SimpleBatch extends Batch {
 
-        private final List<SingleWriteOperation> operations;
+        private final List<SingleOperation> operations;
 
         SimpleBatch(int size) {
             super(size);
-            this.operations = new ArrayList<SingleWriteOperation>(size);
+            this.operations = new ArrayList<>(size);
         }
 
         @Override
-        public void internalAdd(SingleWriteOperation operation) {
+        public void internalAdd(SingleOperation operation) {
             operations.add(operation);
         }
 
         @Override
-        protected List<SingleWriteOperation> operations() {
+        protected List<SingleOperation> operations() {
             return operations;
         }
 
@@ -232,7 +232,7 @@ public class BatchingWriteBehindQueue extends AbstractWriteBehind {
 
     private class CoalescingBatch extends Batch {
 
-        private final LinkedHashMap<String, SingleWriteOperation> operations;
+        private final LinkedHashMap<String, SingleOperation> operations;
 
         public CoalescingBatch(int size) {
             super(size);
@@ -240,12 +240,12 @@ public class BatchingWriteBehindQueue extends AbstractWriteBehind {
         }
 
         @Override
-        public void internalAdd(SingleWriteOperation operation) {
+        public void internalAdd(SingleOperation operation) {
             operations.put(operation.getKey(), operation);
         }
 
         @Override
-        protected Iterable<SingleWriteOperation> operations() {
+        protected Iterable<SingleOperation> operations() {
             return operations.values();
         }
 
@@ -257,28 +257,29 @@ public class BatchingWriteBehindQueue extends AbstractWriteBehind {
 
 
 
-    private static  List<BatchWriteOperation> createMonomorphicBatches(Iterable<SingleWriteOperation> batch) {
-        final List<BatchWriteOperation> closedBatches = new ArrayList<>();
+    private static  List<BatchOperation> createMonomorphicBatches(Iterable<SingleOperation> batch) {
+        final List<BatchOperation> closedBatches = new ArrayList<>();
 
         Set<String> activeDeleteKeys = new HashSet<>();
-        Set<String> activeWrittenKeys = new HashSet<>();
         List<String> activeDeleteBatch = new ArrayList<>();
+
+        Set<String> activeWrittenKeys = new HashSet<>();
         List<Map.Entry<String, Cacheable>> activeWriteBatch = new ArrayList<>();
 
-        for (SingleWriteOperation item : batch) {
-            if (item instanceof WriteOperation) {
+        for (SingleOperation item : batch) {
+            if (item instanceof SetOperation) {
                 if (activeDeleteKeys.contains(item.getKey())) {
                     //close the current delete batch
                     closedBatches.add(new DeleteAllOperation(activeDeleteBatch));
                     activeDeleteBatch = new ArrayList<>();
                     activeDeleteKeys = new HashSet<>();
                 }
-                activeWriteBatch.add(new AbstractMap.SimpleEntry(item.getKey(), ((WriteOperation) item).getValue()));
+                activeWriteBatch.add(new AbstractMap.SimpleEntry(item.getKey(), ((SetOperation) item).getValue()));
                 activeWrittenKeys.add(item.getKey());
             } else if (item instanceof DeleteOperation) {
                 if (activeWrittenKeys.contains(item.getKey())) {
                     //close the current write batch
-                    closedBatches.add(new WriteAllOperation(activeWriteBatch));
+                    closedBatches.add(new SetAllOperation(activeWriteBatch));
                     activeWriteBatch = new ArrayList<>();
                     activeWrittenKeys = new HashSet<>();
                 }
@@ -290,7 +291,7 @@ public class BatchingWriteBehindQueue extends AbstractWriteBehind {
         }
 
         if (!activeWriteBatch.isEmpty()) {
-            closedBatches.add(new WriteAllOperation(activeWriteBatch));
+            closedBatches.add(new SetAllOperation(activeWriteBatch));
         }
         if (!activeDeleteBatch.isEmpty()) {
             closedBatches.add(new DeleteAllOperation(activeDeleteBatch));

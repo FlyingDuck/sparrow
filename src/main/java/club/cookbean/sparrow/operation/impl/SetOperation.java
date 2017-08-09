@@ -15,16 +15,16 @@
 package club.cookbean.sparrow.operation.impl;
 
 
-import club.cookbean.sparrow.operation.SingleWriteOperation;
+import club.cookbean.sparrow.operation.SingleOperation;
 import club.cookbean.sparrow.redis.Cacheable;
 import club.cookbean.sparrow.writer.CacheWriter;
 
-public class WriteOperation implements SingleWriteOperation {
+public class SetOperation implements SingleOperation {
 
     private final String key;
     private final Cacheable value;
 
-    public WriteOperation(String key, Cacheable value) {
+    public SetOperation(String key, Cacheable value) {
         this.key = key;
         this.value = value;
     }
@@ -57,8 +57,8 @@ public class WriteOperation implements SingleWriteOperation {
 
     @Override
     public boolean equals(Object other) {
-        return other instanceof WriteOperation &&
-                getCreationTime() == ((WriteOperation) other).getCreationTime() &&
-                getKey().equals(((WriteOperation) other).getKey());
+        return other instanceof SetOperation &&
+                getCreationTime() == ((SetOperation) other).getCreationTime() &&
+                getKey().equals(((SetOperation) other).getKey());
     }
 }
