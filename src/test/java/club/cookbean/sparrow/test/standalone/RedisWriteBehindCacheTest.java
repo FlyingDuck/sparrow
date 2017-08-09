@@ -139,7 +139,7 @@ public class RedisWriteBehindCacheTest {
                     return "{\"name\":\"Bennet\", \"index\": "+ finalI +"}";
                 }
             };
-            standaloneCache.set(key+"-"+i, cacheValue);
+            standaloneCache.setWithWriter(key+"-"+i, cacheValue);
         }
 
         for (int i=0; i<15; i++) {

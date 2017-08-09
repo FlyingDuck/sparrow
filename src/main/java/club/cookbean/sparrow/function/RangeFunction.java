@@ -12,29 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package club.cookbean.sparrow.cache;
-
-import club.cookbean.sparrow.exception.CacheLoadingException;
-import club.cookbean.sparrow.loader.CacheLoader;
+package club.cookbean.sparrow.function;
 
 import java.util.List;
 
 /**
  * Created by Bennett Dong <br>
- * Date : 2017/8/4 <br>
+ * Date : 2017/8/7 <br>
  * Mail: dongshujin.beans@gmail.com <br> <br>
  * Desc:
  */
-public interface Loadable {
+public interface RangeFunction<A, B, C, R> {
 
-    String getWithLoader(String key) throws CacheLoadingException;
-
-    String getWithLoader(String key, CacheLoader definedCacheLoader) throws CacheLoadingException;
-
-    // list
-
-    List<String> lrangeWithLoader(String key, long start, long end) throws CacheLoadingException;
-
-    List<String> lrangeWithLoader(String key, long start, long end, CacheLoader definedCacheLoader) throws CacheLoadingException;
-
+    List<R> apply(A key, B start, C end);
 }

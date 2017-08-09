@@ -1,3 +1,17 @@
+/* Copyright 2017 Bennett Dong. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package club.cookbean.sparrow.cache.impl;
 
 import club.cookbean.sparrow.cache.ExtendCache;
@@ -243,6 +257,7 @@ public class RedisCache implements ExtendCache {
         statusTransitioner.checkAvailable();
         checkNonNull(key, values);
         try {
+            // todo expore time
             return storage.rpush(key, values);
         } catch (StorageAccessException e) {
             logger.error("List right push exception", e);
@@ -271,7 +286,17 @@ public class RedisCache implements ExtendCache {
     }
 
     @Override
-    public String getWithLoader(String key, CacheLoader cacheLoader) throws CacheLoadingException {
+    public String getWithLoader(String key, CacheLoader definedCacheLoader) throws CacheLoadingException {
+        throw new UnsupportedOperationException("RedisCache is not support loader function");
+    }
+
+    @Override
+    public List<String> lrangeWithLoader(String key, long start, long end) throws CacheLoadingException {
+        throw new UnsupportedOperationException("RedisCache is not support loader function");
+    }
+
+    @Override
+    public List<String> lrangeWithLoader(String key, long start, long end, CacheLoader definedCacheLoader) throws CacheLoadingException {
         throw new UnsupportedOperationException("RedisCache is not support loader function");
     }
 

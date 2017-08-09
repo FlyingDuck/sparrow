@@ -16,6 +16,7 @@ package club.cookbean.sparrow.storage.standalone;
 
 import club.cookbean.sparrow.exception.StorageAccessException;
 import club.cookbean.sparrow.function.Function;
+import club.cookbean.sparrow.function.RangeFunction;
 import club.cookbean.sparrow.redis.Cacheable;
 import club.cookbean.sparrow.storage.Storage;
 import org.slf4j.Logger;
@@ -25,6 +26,7 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.Pipeline;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -352,6 +354,25 @@ public abstract class AbstractStandaloneStorage implements Storage {
             }
         }
         return value;
+    }
+
+    @Override
+    public List<String> handleListRange(String key, long start, long end, RangeFunction<String, Long, Long, Cacheable> rangeFunction) throws StorageAccessException {
+        List<String> values = this.lrang(key, start, end);
+        if (null == values || values.isEmpty()) {
+            List<Cacheable> loadValues = rangeFunction.apply(key, start, end);
+            if (null != loadValues && !loadValues.isEmpty()) {
+                values = new ArrayList<>(loadValues.size());
+                Cacheable[] loadArray = new Cacheable[loadValues.size()];
+                for (int i=0, size = loadValues.size(); i<size; i++) {
+                    loadArray[i] = loadValues.get(i);
+                    values.add(loadValues.get(i).toStringValue());
+                }
+                // todo left operation or right operation ?
+                this.lpush(key, loadArray);
+            }
+        }
+        return values;
     }
 
     @Override
