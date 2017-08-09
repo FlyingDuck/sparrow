@@ -58,8 +58,13 @@ public class RedisCacheTest {
             }
 
             @Override
-            public String toStringValue() {
+            public String getValue() {
                 return "{\"name\": \"Bennett\"}";
+            }
+
+            @Override
+            public String getKey() {
+                return null;
             }
         };
         standaloneCache.set(plaintKey, value);

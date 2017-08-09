@@ -14,9 +14,15 @@
  */
 package club.cookbean.sparrow.function;
 
+import java.util.List;
 
-public interface PairFunction<A, B, R> {
+/**
+ * Created by Bennett Dong <br>
+ * Date : 2017/8/9 <br>
+ * Mail: dongshujin.beans@gmail.com <br> <br>
+ * Desc:
+ */
+public interface PushFunction<Key, Value> {
 
-    R apply(A paramA, B paramB);
-
+    List<Value> apply(Key key);
 }

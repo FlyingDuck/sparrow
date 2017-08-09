@@ -32,5 +32,5 @@ public interface Writable {
 
     void setWithWriter(String key, Cacheable value) throws CacheWritingException;
 
-    void setWithWriter(String key, Cacheable value, CacheWriter cacheWriter) throws CacheWritingException;
+    void lpushWithWriter(String key, Cacheable... values) throws CacheWritingException;
 }

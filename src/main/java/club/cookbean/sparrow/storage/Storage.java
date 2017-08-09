@@ -18,6 +18,7 @@ package club.cookbean.sparrow.storage;
 import club.cookbean.sparrow.annotation.PluralService;
 import club.cookbean.sparrow.exception.StorageAccessException;
 import club.cookbean.sparrow.function.Function;
+import club.cookbean.sparrow.function.PushFunction;
 import club.cookbean.sparrow.function.RangeFunction;
 import club.cookbean.sparrow.redis.Cacheable;
 import club.cookbean.sparrow.redis.RedisConnector;
@@ -25,6 +26,7 @@ import club.cookbean.sparrow.redis.RedisResource;
 import club.cookbean.sparrow.service.Service;
 
 import java.util.List;
+import java.util.Set;
 
 public interface Storage extends ConfigurationChangeSupport {
 
@@ -69,6 +71,20 @@ public interface Storage extends ConfigurationChangeSupport {
 
     String rpop(String key) throws StorageAccessException;
 
+    // -----------------------  set operation -----------------------
+    long scard(String key) throws StorageAccessException;
+
+    boolean sismember(String key, Cacheable value) throws StorageAccessException;
+
+    Set<String> smembers(String key) throws StorageAccessException;
+
+    boolean sadd(String key, Cacheable value) throws StorageAccessException;
+
+    boolean sadd(String key, Cacheable... values) throws StorageAccessException;
+
+    Set<String> sunion(String... keys) throws StorageAccessException;
+
+
 
     // =============================== handle write ===============================
     void handleDelete(String key, Function<String, Boolean> deleteFunc) throws StorageAccessException;
@@ -77,6 +93,7 @@ public interface Storage extends ConfigurationChangeSupport {
 
     void handleSet(String key, Function<String, Cacheable> setFunc) throws StorageAccessException;
 
+    void handleLLPush(String key, PushFunction<String, Cacheable> lpushFunc) throws StorageAccessException;
 
     // =============================== handle load ===============================
     String handleGet(String key, Function<String, Cacheable> getFunc) throws StorageAccessException;
@@ -85,6 +102,7 @@ public interface Storage extends ConfigurationChangeSupport {
 
 
     String normalizeKey(String key);
+
 
     @PluralService
     interface Provider extends Service {

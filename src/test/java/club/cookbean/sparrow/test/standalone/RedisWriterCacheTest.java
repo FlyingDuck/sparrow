@@ -6,7 +6,6 @@ import club.cookbean.sparrow.builder.RedisConnectorBuilder;
 import club.cookbean.sparrow.builder.RedisResourceBuilder;
 import club.cookbean.sparrow.cache.Cache;
 import club.cookbean.sparrow.cache.CacheManager;
-import club.cookbean.sparrow.cache.impl.RedisCache;
 import club.cookbean.sparrow.exception.BulkCacheWritingException;
 import club.cookbean.sparrow.redis.Cacheable;
 import club.cookbean.sparrow.test.db.MockDB;
@@ -40,7 +39,7 @@ public class RedisWriterCacheTest {
             @Override
             public void write(String key, Cacheable value) throws Exception {
                 System.out.println(TAG+" write");
-                MockDB.DataHolder dataHolder = new MockDB.DataHolder(key, value.toStringValue());
+                MockDB.DataHolder dataHolder = new MockDB.DataHolder(key, value.getValue());
                 mockDB.add(dataHolder);
             }
 
@@ -48,7 +47,7 @@ public class RedisWriterCacheTest {
             public void writeAll(Iterable<? extends Map.Entry<String, Cacheable>> entries) throws BulkCacheWritingException, Exception {
                 System.out.println(TAG+" writeAll");
                 for (Map.Entry<String, Cacheable> entry : entries) {
-                    mockDB.add(new MockDB.DataHolder(entry.getKey(), entry.getValue().toStringValue()));
+                    mockDB.add(new MockDB.DataHolder(entry.getKey(), entry.getValue().getValue()));
                 }
             }
 
@@ -99,8 +98,13 @@ public class RedisWriterCacheTest {
             }
 
             @Override
-            public String toStringValue() {
+            public String getValue() {
                 return "{\"name\":\"Bennet\"}";
+            }
+
+            @Override
+            public String getKey() {
+                return null;
             }
         };
         standaloneCache.set(key, cacheValue);
@@ -125,17 +129,17 @@ public class RedisWriterCacheTest {
             }
 
             @Override
-            public String toStringValue() {
+            public String getValue() {
                 return "{\"name\":\"Bennet\"}";
+            }
+
+            @Override
+            public String getKey() {
+                return null;
             }
         };
 
-        standaloneCache.setWithWriter(key, cacheValue, new SingleCacheWriter() {
-            @Override
-            public void write(String key, Cacheable value) throws Exception {
-                mockDB.add(new MockDB.DataHolder(key, "set with writer"));
-            }
-        });
+        standaloneCache.setWithWriter(key, cacheValue);
 
         String value = standaloneCache.get(key);
         System.out.println("cache value = " + value);

@@ -22,7 +22,7 @@ import java.util.List;
  * Mail: dongshujin.beans@gmail.com <br> <br>
  * Desc:
  */
-public interface RangeFunction<A, B, C, R> {
+public interface RangeFunction<Key, Start, End, Value> {
 
-    List<R> apply(A key, B start, C end);
+    List<Value> apply(Key key, Start start, End end);
 }

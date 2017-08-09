@@ -37,7 +37,7 @@ public class RedisWriteBehindBatchCacheTest {
             @Override
             public void write(String key, Cacheable value) throws Exception {
                 System.out.println(TAG+"["+Thread.currentThread().getName()+"] write");
-                MockDB.DataHolder dataHolder = new MockDB.DataHolder(key, value.toStringValue());
+                MockDB.DataHolder dataHolder = new MockDB.DataHolder(key, value.getValue());
                 mockDB.add(dataHolder);
             }
 
@@ -45,7 +45,7 @@ public class RedisWriteBehindBatchCacheTest {
             public void writeAll(Iterable<? extends Map.Entry<String, Cacheable>> entries) throws BulkCacheWritingException, Exception {
                 System.out.println(TAG+"["+Thread.currentThread().getName()+"] writeAll");
                 for (Map.Entry<String, Cacheable> entry : entries) {
-                    mockDB.add(new MockDB.DataHolder(entry.getKey(), entry.getValue().toStringValue()));
+                    mockDB.add(new MockDB.DataHolder(entry.getKey(), entry.getValue().getValue()));
                 }
             }
 
@@ -100,8 +100,13 @@ public class RedisWriteBehindBatchCacheTest {
             }
 
             @Override
-            public String toStringValue() {
+            public String getValue() {
                 return "{\"name\":\"Bennet\"}";
+            }
+
+            @Override
+            public String getKey() {
+                return null;
             }
         };
         standaloneCache.set(key, cacheValue);
@@ -136,8 +141,13 @@ public class RedisWriteBehindBatchCacheTest {
                 }
 
                 @Override
-                public String toStringValue() {
+                public String getValue() {
                     return "{\"name\":\"Bennet\", \"index\": "+ finalI +"}";
+                }
+
+                @Override
+                public String getKey() {
+                    return null;
                 }
             };
             standaloneCache.setWithWriter(key+"-"+i, cacheValue);
