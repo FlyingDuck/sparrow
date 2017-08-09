@@ -6,7 +6,6 @@ import club.cookbean.sparrow.builder.RedisConnectorBuilder;
 import club.cookbean.sparrow.builder.RedisResourceBuilder;
 import club.cookbean.sparrow.cache.Cache;
 import club.cookbean.sparrow.cache.CacheManager;
-import club.cookbean.sparrow.exception.BulkCacheLoadingException;
 import club.cookbean.sparrow.exception.BulkCacheWritingException;
 import club.cookbean.sparrow.loader.CacheLoader;
 import club.cookbean.sparrow.redis.Cacheable;
@@ -61,7 +60,7 @@ public class RedisWriterLoaderCacheTest {
                         }
 
                         @Override
-                        public String toStringValue() {
+                        public String getValue() {
                             return dataHolder.toString();
                         }
                     };
@@ -82,7 +81,7 @@ public class RedisWriterLoaderCacheTest {
             @Override
             public void write(String key, Cacheable value) throws Exception {
                 System.out.println(TAG+" write");
-                MockDB.DataHolder dataHolder = new MockDB.DataHolder(key, value.toStringValue());
+                MockDB.DataHolder dataHolder = new MockDB.DataHolder(key, value.getValue());
                 mockDB.add(dataHolder);
             }
 
@@ -90,7 +89,7 @@ public class RedisWriterLoaderCacheTest {
             public void writeAll(Iterable<? extends Map.Entry<String, Cacheable>> entries) throws BulkCacheWritingException, Exception {
                 System.out.println(TAG+" writeAll");
                 for (Map.Entry<String, Cacheable> entry : entries) {
-                    mockDB.add(new MockDB.DataHolder(entry.getKey(), entry.getValue().toStringValue()));
+                    mockDB.add(new MockDB.DataHolder(entry.getKey(), entry.getValue().getValue()));
                 }
             }
 
@@ -151,7 +150,7 @@ public class RedisWriterLoaderCacheTest {
             }
 
             @Override
-            public String toStringValue() {
+            public String getValue() {
                 return "{\"name\":\"Bennet\"}";
             }
         };

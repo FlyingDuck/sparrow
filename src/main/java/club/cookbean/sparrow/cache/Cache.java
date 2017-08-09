@@ -23,6 +23,7 @@ import club.cookbean.sparrow.redis.Cacheable;
 import club.cookbean.sparrow.writer.CacheWriter;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by Bennett Dong <br>
@@ -69,6 +70,19 @@ public interface Cache extends Loadable, Writable {
     boolean rpush(String key, Cacheable... values) throws CacheWritingException;
 
     String rpop(String key) throws CacheWritingException;
+
+    // -----------------------  set operation -----------------------
+    long scard(String key) throws CacheLoadingException;
+
+    boolean sismember(String key, Cacheable value) throws CacheLoadingException;
+
+    Set<String> smembers(String key) throws CacheLoadingException;
+
+    boolean sadd(String key, Cacheable value) throws CacheWritingException;
+
+    boolean sadd(String key, Cacheable... values) throws CacheWritingException;
+
+    Set<String> sunion(String... keys) throws CacheWritingException;
 
 
     CacheRuntimeConfiguration getRuntimeConfiguration();

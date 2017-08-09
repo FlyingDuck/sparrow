@@ -58,7 +58,7 @@ public class RedisCacheTest {
             }
 
             @Override
-            public String toStringValue() {
+            public String getValue() {
                 return "{\"name\": \"Bennett\"}";
             }
         };

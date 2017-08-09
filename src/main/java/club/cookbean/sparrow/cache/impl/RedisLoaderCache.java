@@ -89,7 +89,7 @@ public class RedisLoaderCache extends RedisCache {
             return value;
         } catch (StorageAccessException e) {
             Cacheable loadValue = getFunction.apply(key);
-            return null != loadValue ? loadValue.toStringValue() : null;
+            return null != loadValue ? loadValue.getValue() : null;
         }
     }
 
@@ -122,7 +122,7 @@ public class RedisLoaderCache extends RedisCache {
             List<Cacheable> valueObjs = rangeFunction.apply(key, start, end);
             List<String> values = new ArrayList<>(valueObjs.size());
             for (Cacheable obj : valueObjs) {
-                values.add(obj.toStringValue());
+                values.add(obj.getValue());
             }
             return values;
         }

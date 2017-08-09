@@ -60,7 +60,7 @@ public class RedisLoaderCacheTest {
                         }
 
                         @Override
-                        public String toStringValue() {
+                        public String getValue() {
                             return dataHolder.toString();
                         }
                     };
@@ -127,7 +127,7 @@ public class RedisLoaderCacheTest {
                         }
 
                         @Override
-                        public String toStringValue() {
+                        public String getValue() {
                             return "SingleLoader-"+key;
                         }
                     };

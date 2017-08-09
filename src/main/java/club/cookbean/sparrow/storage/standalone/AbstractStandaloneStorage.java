@@ -29,8 +29,8 @@ import redis.clients.jedis.Pipeline;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by Bennett Dong <br>
@@ -142,7 +142,7 @@ public abstract class AbstractStandaloneStorage implements Storage {
         Jedis jedis = jedisPool.getResource();
         Pipeline pipeline = jedis.pipelined();
         try {
-            pipeline.set(finalKey, value.toStringValue());
+            pipeline.set(finalKey, value.getValue());
             pipeline.pexpire(finalKey, value.getExpireTime());
             //List<Object> result = pipeline.syncAndReturnAll();
             pipeline.sync();
@@ -223,7 +223,7 @@ public abstract class AbstractStandaloneStorage implements Storage {
         String finalKey = normalizeKey(key);
         Jedis jedis = jedisPool.getResource();
         try {
-            Long result =  jedis.lpush(finalKey, value.toStringValue());
+            Long result =  jedis.lpush(finalKey, value.getValue());
             return result!=null && result>0;
         } catch (Exception e) {
             throw new StorageAccessException(e);
@@ -240,7 +240,7 @@ public abstract class AbstractStandaloneStorage implements Storage {
         try {
             String[] strArray = new String[values.length];
             for (int i=0; i<values.length; i++) {
-                strArray[i] = values[i].toStringValue();
+                strArray[i] = values[i].getValue();
             }
             Long result = jedis.lpush(finalKey, strArray);
             return result != null && result > 0;
@@ -271,7 +271,7 @@ public abstract class AbstractStandaloneStorage implements Storage {
         String finalKey = normalizeKey(key);
         Jedis jedis = jedisPool.getResource();
         try {
-            Long result = jedis.rpush(finalKey, value.toStringValue());
+            Long result = jedis.rpush(finalKey, value.getValue());
             return result != null && result > 0;
         } catch (Exception e) {
             throw new StorageAccessException(e);
@@ -288,7 +288,7 @@ public abstract class AbstractStandaloneStorage implements Storage {
         try {
             String[] strArray = new String[values.length];
             for (int i=0; i<values.length; i++) {
-                strArray[i] = values[i].toStringValue();
+                strArray[i] = values[i].getValue();
             }
             Long result = jedis.rpush(finalKey, strArray);
             return result != null && result > 0;
@@ -306,6 +306,91 @@ public abstract class AbstractStandaloneStorage implements Storage {
         Jedis jedis = jedisPool.getResource();
         try {
             return jedis.rpop(finalKey);
+        } catch (Exception e) {
+            throw new StorageAccessException(e);
+        } finally {
+            if (null != jedis)
+                jedis.close();
+        }
+    }
+
+    // ++++++++++++++++++++++++++++ set ++++++++++++++++++++++++++++
+
+    @Override
+    public long scard(String key) throws StorageAccessException {
+        String finalKey = normalizeKey(key);
+        Jedis jedis = jedisPool.getResource();
+        try {
+            return jedis.scard(finalKey);
+        } catch (Exception e) {
+            throw new StorageAccessException(e);
+        } finally {
+            if (null != jedis)
+                jedis.close();
+        }
+    }
+
+    @Override
+    public boolean sismember(String key, Cacheable value) throws StorageAccessException {
+        String finalKey = normalizeKey(key);
+        Jedis jedis = jedisPool.getResource();
+        try {
+            return jedis.sismember(finalKey, value.getKey());
+        } catch (Exception e) {
+            throw new StorageAccessException(e);
+        } finally {
+            if (null != jedis)
+                jedis.close();
+        }
+    }
+
+    @Override
+    public Set<String> smembers(String key) throws StorageAccessException {
+        String finalKey = normalizeKey(key);
+        Jedis jedis = jedisPool.getResource();
+        try {
+            return jedis.smembers(finalKey);
+        } catch (Exception e) {
+            throw new StorageAccessException(e);
+        } finally {
+            if (null != jedis)
+                jedis.close();
+        }
+    }
+
+    @Override
+    public boolean sadd(String key, Cacheable value) throws StorageAccessException {
+        return sadd(key, value);
+    }
+
+    @Override
+    public boolean sadd(String key, Cacheable... values) throws StorageAccessException {
+        String finalKey = normalizeKey(key);
+        Jedis jedis = jedisPool.getResource();
+        try {
+            String[] valueArray = new String[values.length];
+            for (int i=0; i<values.length; i++) {
+                valueArray[i] = values[i].getKey();
+            }
+            Long result = jedis.sadd(finalKey, valueArray);
+            return null != result && result > 0;
+        } catch (Exception e) {
+            throw new StorageAccessException(e);
+        } finally {
+            if (null != jedis)
+                jedis.close();
+        }
+    }
+
+    @Override
+    public Set<String> sunion(String... keys) throws StorageAccessException {
+        String[] finalKeys = new String[keys.length];
+        for (int i=0; i<keys.length; i++) {
+            finalKeys[i] = normalizeKey(keys[i]);
+        }
+        Jedis jedis = jedisPool.getResource();
+        try {
+            return jedis.sunion(finalKeys);
         } catch (Exception e) {
             throw new StorageAccessException(e);
         } finally {
@@ -361,7 +446,7 @@ public abstract class AbstractStandaloneStorage implements Storage {
         if (null == value) {
             Cacheable loadValue = getFunc.apply(key);
             if (null != loadValue) {
-                value = loadValue.toStringValue();
+                value = loadValue.getValue();
                 this.set(key, loadValue);
             }
         }
@@ -378,7 +463,7 @@ public abstract class AbstractStandaloneStorage implements Storage {
                 Cacheable[] loadArray = new Cacheable[loadValues.size()];
                 for (int i=0, size = loadValues.size(); i<size; i++) {
                     loadArray[i] = loadValues.get(i);
-                    values.add(loadValues.get(i).toStringValue());
+                    values.add(loadValues.get(i).getValue());
                 }
                 // todo left operation or right operation ?
                 this.lpush(key, loadArray);

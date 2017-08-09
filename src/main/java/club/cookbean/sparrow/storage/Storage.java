@@ -26,6 +26,7 @@ import club.cookbean.sparrow.redis.RedisResource;
 import club.cookbean.sparrow.service.Service;
 
 import java.util.List;
+import java.util.Set;
 
 public interface Storage extends ConfigurationChangeSupport {
 
@@ -69,6 +70,20 @@ public interface Storage extends ConfigurationChangeSupport {
     boolean rpush(String key, Cacheable... values) throws StorageAccessException;
 
     String rpop(String key) throws StorageAccessException;
+
+    // -----------------------  set operation -----------------------
+    long scard(String key) throws StorageAccessException;
+
+    boolean sismember(String key, Cacheable value) throws StorageAccessException;
+
+    Set<String> smembers(String key) throws StorageAccessException;
+
+    boolean sadd(String key, Cacheable value) throws StorageAccessException;
+
+    boolean sadd(String key, Cacheable... values) throws StorageAccessException;
+
+    Set<String> sunion(String... keys) throws StorageAccessException;
+
 
 
     // =============================== handle write ===============================

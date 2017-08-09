@@ -32,6 +32,7 @@ import club.cookbean.sparrow.writer.CacheWriter;
 import org.slf4j.Logger;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by Bennett Dong <br>
@@ -275,6 +276,74 @@ public class RedisCache implements ExtendCache {
             logger.error("List right pop exception", e);
         }
         return null;
+    }
+
+    // ----------------------------------- set method -----------------------------------
+
+    @Override
+    public long scard(String key) throws CacheLoadingException {
+        statusTransitioner.checkAvailable();
+        checkNonNull(key);
+        try {
+            return storage.scard(key);
+        } catch (StorageAccessException e) {
+            throw new CacheLoadingException("Set scard exception", e);
+        }
+    }
+
+    @Override
+    public boolean sismember(String key, Cacheable value) throws CacheLoadingException {
+        statusTransitioner.checkAvailable();
+        checkNonNull(key);
+        try {
+            return storage.sismember(key, value);
+        } catch (StorageAccessException e) {
+            throw new CacheLoadingException("Set sismember exception", e);
+        }
+    }
+
+    @Override
+    public Set<String> smembers(String key) throws CacheLoadingException {
+        statusTransitioner.checkAvailable();
+        checkNonNull(key);
+        try {
+            return storage.smembers(key);
+        } catch (StorageAccessException e) {
+            throw new CacheLoadingException("Set smembers exception", e);
+        }
+    }
+
+    @Override
+    public boolean sadd(String key, Cacheable value) throws CacheWritingException {
+        statusTransitioner.checkAvailable();
+        checkNonNull(key);
+        try {
+            return storage.sadd(key, value);
+        } catch (StorageAccessException e) {
+            throw new CacheLoadingException("Set sadd exception", e);
+        }
+    }
+
+    @Override
+    public boolean sadd(String key, Cacheable... values) throws CacheWritingException {
+        statusTransitioner.checkAvailable();
+        checkNonNull(key);
+        try {
+            return storage.sadd(key, values);
+        } catch (StorageAccessException e) {
+            throw new CacheLoadingException("Set sadd exception", e);
+        }
+    }
+
+    @Override
+    public Set<String> sunion(String... keys) throws CacheWritingException {
+        statusTransitioner.checkAvailable();
+        checkNonNull(keys);
+        try {
+            return storage.sunion(keys);
+        } catch (StorageAccessException e) {
+            throw new CacheLoadingException("Set sunion exception", e);
+        }
     }
 
 

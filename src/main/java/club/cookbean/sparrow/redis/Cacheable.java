@@ -32,5 +32,11 @@ public interface Cacheable {
      * Get string type value
      * @return string value
      */
-    String toStringValue();
+    String getValue();
+
+    /**
+     * Get string type key, for set using
+     * @return string key
+     */
+    String getKey();
 }
