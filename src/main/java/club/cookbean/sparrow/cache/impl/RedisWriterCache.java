@@ -19,13 +19,15 @@ import club.cookbean.sparrow.exception.CacheWritingException;
 import club.cookbean.sparrow.exception.StorageAccessException;
 import club.cookbean.sparrow.exception.StoragePassThroughException;
 import club.cookbean.sparrow.function.Function;
+import club.cookbean.sparrow.function.PushFunction;
 import club.cookbean.sparrow.function.impl.MemoizingFunction;
+import club.cookbean.sparrow.function.impl.MemoizingPushFunction;
 import club.cookbean.sparrow.redis.Cacheable;
 import club.cookbean.sparrow.storage.Storage;
 import club.cookbean.sparrow.writer.CacheWriter;
 import org.slf4j.Logger;
 
-import java.util.Arrays;
+import java.util.*;
 
 public class RedisWriterCache extends RedisCache {
 
@@ -89,10 +91,35 @@ public class RedisWriterCache extends RedisCache {
 
     @Override
     public void setWithWriter(String key, final Cacheable value) throws CacheWritingException {
-        setWithWriter(key, value, this.cacheWriter);
+        statusTransitioner.checkAvailable();
+        checkNonNull(key, value);
+        Function<String, Cacheable> setFunction = MemoizingFunction.memoize(new Function<String, Cacheable>() {
+            @Override
+            public Cacheable apply(String key) {
+                try {
+                    cacheWriter.write(key, value);
+                } catch (Exception e) {
+                    throw new StoragePassThroughException(new CacheWritingException(e));
+                }
+                return value;
+            }
+        });
+
+        try {
+            storage.handleSet(key, setFunction);
+        } catch (StorageAccessException ex) {
+            try {
+                setFunction.apply(key);
+            } catch (StoragePassThroughException e) {
+                // todo 重试策略
+                return;
+            } finally {
+
+            }
+        }
     }
 
-    @Override
+    /*@Override
     public void setWithWriter(String key, final Cacheable value, final CacheWriter singleCacheWriter) throws CacheWritingException {
         statusTransitioner.checkAvailable();
         checkNonNull(key, value);
@@ -120,5 +147,42 @@ public class RedisWriterCache extends RedisCache {
 
             }
         }
+    }*/
+
+    @Override
+    public void lpushWithWriter(String key, final Cacheable... values) throws CacheWritingException {
+        statusTransitioner.checkAvailable();
+        checkNonNull(key, values);
+
+
+        PushFunction<String, Cacheable> lpushFunc = MemoizingPushFunction.memoize(new PushFunction<String, Cacheable>() {
+            @Override
+            public List<Cacheable> apply(String key) {
+                List<Cacheable> list = new ArrayList<>(values.length);
+                try {
+                    List<Map.Entry<String, Cacheable>> entries = new ArrayList<>(values.length);
+                    for (Cacheable value : values) {
+                        entries.add(new AbstractMap.SimpleEntry<>(key, value));
+                    }
+                    cacheWriter.writeAll(entries);
+                } catch (Exception e) {
+                    throw new StoragePassThroughException(new CacheWritingException(e));
+                }
+                return list;
+            }
+        });
+
+        try {
+            storage.handleLLPush(key, lpushFunc);
+        } catch (StorageAccessException ex) {
+            try {
+                lpushFunc.apply(key);
+            } catch (StoragePassThroughException e) {
+
+            } finally {
+
+            }
+        }
+
     }
 }

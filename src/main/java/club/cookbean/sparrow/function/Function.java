@@ -14,7 +14,7 @@
  */
 package club.cookbean.sparrow.function;
 
-public interface Function<A, R> {
+public interface Function<key, Result> {
 
-    R apply(A paramA);
+    Result apply(key key);
 }

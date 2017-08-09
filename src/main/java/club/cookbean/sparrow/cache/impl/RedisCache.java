@@ -317,8 +317,13 @@ public class RedisCache implements ExtendCache {
         throw new UnsupportedOperationException("RedisCache is not support writer function");
     }
 
-    @Override
+    /*@Override
     public void setWithWriter(String key, Cacheable value, CacheWriter cacheWriter) throws CacheWritingException {
+        throw new UnsupportedOperationException("RedisCache is not support writer function");
+    }*/
+
+    @Override
+    public void lpushWithWriter(String key, Cacheable... values) throws CacheWritingException {
         throw new UnsupportedOperationException("RedisCache is not support writer function");
     }
 

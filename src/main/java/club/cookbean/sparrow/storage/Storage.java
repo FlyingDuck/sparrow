@@ -18,6 +18,7 @@ package club.cookbean.sparrow.storage;
 import club.cookbean.sparrow.annotation.PluralService;
 import club.cookbean.sparrow.exception.StorageAccessException;
 import club.cookbean.sparrow.function.Function;
+import club.cookbean.sparrow.function.PushFunction;
 import club.cookbean.sparrow.function.RangeFunction;
 import club.cookbean.sparrow.redis.Cacheable;
 import club.cookbean.sparrow.redis.RedisConnector;
@@ -77,6 +78,7 @@ public interface Storage extends ConfigurationChangeSupport {
 
     void handleSet(String key, Function<String, Cacheable> setFunc) throws StorageAccessException;
 
+    void handleLLPush(String key, PushFunction<String, Cacheable> lpushFunc) throws StorageAccessException;
 
     // =============================== handle load ===============================
     String handleGet(String key, Function<String, Cacheable> getFunc) throws StorageAccessException;
@@ -85,6 +87,7 @@ public interface Storage extends ConfigurationChangeSupport {
 
 
     String normalizeKey(String key);
+
 
     @PluralService
     interface Provider extends Service {

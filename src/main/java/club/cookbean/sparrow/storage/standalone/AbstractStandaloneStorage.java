@@ -16,6 +16,7 @@ package club.cookbean.sparrow.storage.standalone;
 
 import club.cookbean.sparrow.exception.StorageAccessException;
 import club.cookbean.sparrow.function.Function;
+import club.cookbean.sparrow.function.PushFunction;
 import club.cookbean.sparrow.function.RangeFunction;
 import club.cookbean.sparrow.redis.Cacheable;
 import club.cookbean.sparrow.storage.Storage;
@@ -314,7 +315,7 @@ public abstract class AbstractStandaloneStorage implements Storage {
     }
 
 
-    // ++++++++++++++++++++++++++++ handle ++++++++++++++++++++++++++++
+    // ++++++++++++++++++++++++++++ handle write ++++++++++++++++++++++++++++
 
     @Override
     public void handleDelete(String key, Function<String, Boolean> deleteFunc) throws StorageAccessException {
@@ -340,6 +341,17 @@ public abstract class AbstractStandaloneStorage implements Storage {
             this.set(key, value);
         }
     }
+
+    @Override
+    public void handleLLPush(String key, PushFunction<String, Cacheable> lpushFunc) throws StorageAccessException {
+        List<Cacheable> pushList = lpushFunc.apply(key);
+        if (null != pushList) {
+            Cacheable[] writeArray = new Cacheable[pushList.size()];
+            this.lpush(key, pushList.toArray(writeArray));
+        }
+    }
+
+    // ++++++++++++++++++++++++++++ handle load ++++++++++++++++++++++++++++
 
     @Override
     public String handleGet(String key, Function<String, Cacheable> getFunc) throws StorageAccessException {

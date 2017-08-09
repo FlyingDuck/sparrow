@@ -22,11 +22,11 @@ import club.cookbean.sparrow.writer.CacheWriter;
 
 import java.util.Map;
 
-public class SetAllOperation implements BatchOperation {
+public class WriteAllOperation implements BatchOperation {
 
     private final Iterable<? extends Map.Entry<String, Cacheable>> entries;
 
-    public SetAllOperation(Iterable<? extends Map.Entry<String, Cacheable>> entries) {
+    public WriteAllOperation(Iterable<? extends Map.Entry<String, Cacheable>> entries) {
         this.entries = entries;
     }
 

@@ -19,7 +19,7 @@ import club.cookbean.sparrow.exception.BulkCacheWritingException;
 import club.cookbean.sparrow.exception.CacheWritingException;
 import club.cookbean.sparrow.operation.SingleOperation;
 import club.cookbean.sparrow.operation.impl.DeleteOperation;
-import club.cookbean.sparrow.operation.impl.SetOperation;
+import club.cookbean.sparrow.operation.impl.WriteOperation;
 import club.cookbean.sparrow.redis.Cacheable;
 import club.cookbean.sparrow.writer.CacheWriter;
 import club.cookbean.sparrow.writer.WriteBehind;
@@ -42,7 +42,7 @@ public abstract class AbstractWriteBehind implements WriteBehind {
 
     @Override
     public void write(String key, Cacheable value) throws CacheWritingException {
-        addOperation(new SetOperation(key, value));
+        addOperation(new WriteOperation(key, value));
     }
 
     @Override

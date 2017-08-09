@@ -20,8 +20,8 @@ import club.cookbean.sparrow.operation.BatchOperation;
 import club.cookbean.sparrow.operation.SingleOperation;
 import club.cookbean.sparrow.operation.impl.DeleteAllOperation;
 import club.cookbean.sparrow.operation.impl.DeleteOperation;
-import club.cookbean.sparrow.operation.impl.SetAllOperation;
-import club.cookbean.sparrow.operation.impl.SetOperation;
+import club.cookbean.sparrow.operation.impl.WriteAllOperation;
+import club.cookbean.sparrow.operation.impl.WriteOperation;
 import club.cookbean.sparrow.redis.Cacheable;
 import club.cookbean.sparrow.service.ExecutionService;
 import club.cookbean.sparrow.util.ExecutorUtil;
@@ -267,19 +267,19 @@ public class BatchingWriteBehindQueue extends AbstractWriteBehind {
         List<Map.Entry<String, Cacheable>> activeWriteBatch = new ArrayList<>();
 
         for (SingleOperation item : batch) {
-            if (item instanceof SetOperation) {
+            if (item instanceof WriteOperation) {
                 if (activeDeleteKeys.contains(item.getKey())) {
                     //close the current delete batch
                     closedBatches.add(new DeleteAllOperation(activeDeleteBatch));
                     activeDeleteBatch = new ArrayList<>();
                     activeDeleteKeys = new HashSet<>();
                 }
-                activeWriteBatch.add(new AbstractMap.SimpleEntry(item.getKey(), ((SetOperation) item).getValue()));
+                activeWriteBatch.add(new AbstractMap.SimpleEntry(item.getKey(), ((WriteOperation) item).getValue()));
                 activeWrittenKeys.add(item.getKey());
             } else if (item instanceof DeleteOperation) {
                 if (activeWrittenKeys.contains(item.getKey())) {
                     //close the current write batch
-                    closedBatches.add(new SetAllOperation(activeWriteBatch));
+                    closedBatches.add(new WriteAllOperation(activeWriteBatch));
                     activeWriteBatch = new ArrayList<>();
                     activeWrittenKeys = new HashSet<>();
                 }
@@ -291,7 +291,7 @@ public class BatchingWriteBehindQueue extends AbstractWriteBehind {
         }
 
         if (!activeWriteBatch.isEmpty()) {
-            closedBatches.add(new SetAllOperation(activeWriteBatch));
+            closedBatches.add(new WriteAllOperation(activeWriteBatch));
         }
         if (!activeDeleteBatch.isEmpty()) {
             closedBatches.add(new DeleteAllOperation(activeDeleteBatch));

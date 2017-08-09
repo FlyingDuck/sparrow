@@ -17,26 +17,26 @@ package club.cookbean.sparrow.function.impl;
 
 import club.cookbean.sparrow.function.Function;
 
-public class MemoizingFunction<A, R> implements Function<A, R> {
-    private final Function<A, R> function;
+public class MemoizingFunction<key, Result> implements Function<key, Result> {
+    private final Function<key, Result> function;
     private boolean handled;
-    private R value;
+    private Result result;
 
     public static <A, R> MemoizingFunction<A, R> memoize(Function<A, R> function) {
         return new MemoizingFunction<>(function);
     }
 
-    private MemoizingFunction(Function<A, R> pairFunction) {
+    private MemoizingFunction(Function<key, Result> pairFunction) {
         this.function = pairFunction;
     }
 
     @Override
-    public R apply(A paramA) {
+    public Result apply(key key) {
         if (handled) {
-            return value;
+            return result;
         }
         handled = true;
-        value = function.apply(paramA);
-        return value;
+        result = function.apply(key);
+        return result;
     }
 }
