@@ -63,6 +63,11 @@ public class RedisWriterLoaderCacheTest {
                         public String getValue() {
                             return dataHolder.toString();
                         }
+
+                        @Override
+                        public String getKey() {
+                            return null;
+                        }
                     };
                 }
                 return value;
@@ -152,6 +157,11 @@ public class RedisWriterLoaderCacheTest {
             @Override
             public String getValue() {
                 return "{\"name\":\"Bennet\"}";
+            }
+
+            @Override
+            public String getKey() {
+                return null;
             }
         };
         standaloneCache.set(key, cacheValue);

@@ -103,6 +103,11 @@ public class RedisWriteBehindBatchCacheTest {
             public String getValue() {
                 return "{\"name\":\"Bennet\"}";
             }
+
+            @Override
+            public String getKey() {
+                return null;
+            }
         };
         standaloneCache.set(key, cacheValue);
 
@@ -138,6 +143,11 @@ public class RedisWriteBehindBatchCacheTest {
                 @Override
                 public String getValue() {
                     return "{\"name\":\"Bennet\", \"index\": "+ finalI +"}";
+                }
+
+                @Override
+                public String getKey() {
+                    return null;
                 }
             };
             standaloneCache.setWithWriter(key+"-"+i, cacheValue);

@@ -2,6 +2,8 @@ package club.cookbean.sparrow.function.impl;
 
 import club.cookbean.sparrow.function.PushFunction;
 
+import java.util.List;
+
 /**
  * Created by Bennett Dong <br>
  * Date : 2017/8/9 <br>
@@ -12,7 +14,7 @@ public class MemoizingPushFunction<Key, Value> implements PushFunction<Key, Valu
 
     private final PushFunction<Key, Value> function;
     private boolean handled;
-    private Iterable<Value> result;
+    private List<Value> result;
 
     public static <Key, Value> MemoizingPushFunction<Key, Value> memoize(PushFunction<Key, Value> function) {
         return new MemoizingPushFunction<>(function);
@@ -23,7 +25,7 @@ public class MemoizingPushFunction<Key, Value> implements PushFunction<Key, Valu
     }
 
     @Override
-    public Iterable<Value> apply(Key key) {
+    public List<Value> apply(Key key) {
         if (handled) {
             return result;
         }

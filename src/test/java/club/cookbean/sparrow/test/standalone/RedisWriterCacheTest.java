@@ -101,6 +101,11 @@ public class RedisWriterCacheTest {
             public String getValue() {
                 return "{\"name\":\"Bennet\"}";
             }
+
+            @Override
+            public String getKey() {
+                return null;
+            }
         };
         standaloneCache.set(key, cacheValue);
 
@@ -127,14 +132,14 @@ public class RedisWriterCacheTest {
             public String getValue() {
                 return "{\"name\":\"Bennet\"}";
             }
+
+            @Override
+            public String getKey() {
+                return null;
+            }
         };
 
-        standaloneCache.setWithWriter(key, cacheValue, new SingleCacheWriter() {
-            @Override
-            public void write(String key, Cacheable value) throws Exception {
-                mockDB.add(new MockDB.DataHolder(key, "set with writer"));
-            }
-        });
+        standaloneCache.setWithWriter(key, cacheValue);
 
         String value = standaloneCache.get(key);
         System.out.println("cache value = " + value);
