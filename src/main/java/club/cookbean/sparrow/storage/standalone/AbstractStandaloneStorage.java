@@ -464,8 +464,8 @@ public abstract class AbstractStandaloneStorage implements Storage {
     }
 
     @Override
-    public long handleLLPush(String key, PushFunction<String, Cacheable> lpushFunc) throws StorageAccessException {
-        List<Cacheable> pushList = lpushFunc.apply(key);
+    public long handleLLPush(String key, Function<String, List<? extends Cacheable>> lpushFunc) throws StorageAccessException {
+        List<? extends Cacheable> pushList = lpushFunc.apply(key);
         if (null != pushList && !pushList.isEmpty()) {
             Cacheable[] writeArray = new Cacheable[pushList.size()];
             return this.lpush(key, pushList.toArray(writeArray));
@@ -474,8 +474,8 @@ public abstract class AbstractStandaloneStorage implements Storage {
     }
 
     @Override
-    public long handleLRPush(String key, PushFunction<String, Cacheable> rpushFunc) throws StorageAccessException {
-        List<Cacheable> pushList = rpushFunc.apply(key);
+    public long handleLRPush(String key, Function<String, List<? extends Cacheable>> rpushFunc) throws StorageAccessException {
+        List<? extends Cacheable> pushList = rpushFunc.apply(key);
         if (null != pushList && !pushList.isEmpty()) {
             Cacheable[] writeArray = new Cacheable[pushList.size()];
             return this.rpush(key, writeArray);
@@ -484,8 +484,8 @@ public abstract class AbstractStandaloneStorage implements Storage {
     }
 
     @Override
-    public long handleSetAdd(String key, AddFunction<String, Cacheable> addFunc) throws StorageAccessException {
-        Set<Cacheable> writeValues = addFunc.apply(key);
+    public long handleSetAdd(String key, Function<String, Set<? extends Cacheable>> addFunc) throws StorageAccessException {
+        Set<? extends Cacheable> writeValues = addFunc.apply(key);
         if (null != writeValues && !writeValues.isEmpty()) {
             Cacheable[] writeArray = new Cacheable[writeValues.size()];
             return this.sadd(key, writeValues.toArray(writeArray));

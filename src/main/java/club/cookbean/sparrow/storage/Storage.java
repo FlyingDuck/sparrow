@@ -92,11 +92,11 @@ public interface Storage extends ConfigurationChangeSupport {
 
     void handleSet(String key, Function<String, Cacheable> setFunc) throws StorageAccessException;
 
-    long handleLLPush(String key, PushFunction<String, Cacheable> lpushFunc) throws StorageAccessException;
+    long handleLLPush(String key, Function<String, List<? extends Cacheable>> lpushFunc) throws StorageAccessException;
 
-    long handleLRPush(String key, PushFunction<String, Cacheable> rpushFunc) throws StorageAccessException;
+    long handleLRPush(String key, Function<String, List<? extends Cacheable>> rpushFunc) throws StorageAccessException;
 
-    long handleSetAdd(String key, AddFunction<String, Cacheable> addFunc) throws StorageAccessException;
+    long handleSetAdd(String key, Function<String, Set<? extends Cacheable>> addFunc) throws StorageAccessException;
 
     // =============================== handle load ===============================
     String handleGet(String key, Function<String, Cacheable> getFunc) throws StorageAccessException;
