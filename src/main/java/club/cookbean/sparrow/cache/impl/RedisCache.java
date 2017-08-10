@@ -72,9 +72,8 @@ public class RedisCache implements ExtendCache {
         try {
             return storage.exist(key);
         } catch (StorageAccessException e) {
-            logger.error("Get exception", e);
+            throw new CacheLoadingException("Get exception", e);
         }
-        return false;
     }
 
     @Override
@@ -85,9 +84,8 @@ public class RedisCache implements ExtendCache {
         try {
             return storage.expire(key, millisecond);
         } catch (StorageAccessException e) {
-            logger.error("Expire exception. [key="+key+", duration="+millisecond+"]", e);
+            throw new CacheWritingException("Expire exception. [key="+key+", duration="+millisecond+"]", e);
         }
-        return false;
     }
 
     @Override
@@ -98,9 +96,8 @@ public class RedisCache implements ExtendCache {
         try {
             return storage.expireAt(key, timestamp);
         } catch (StorageAccessException e) {
-            logger.error("ExpireAt exception. [key="+key+", timestamp="+timestamp+"]", e);
+            throw new CacheWritingException("ExpireAt exception. [key="+key+", timestamp="+timestamp+"]", e);
         }
-        return false;
     }
 
     @Override
@@ -111,7 +108,7 @@ public class RedisCache implements ExtendCache {
         try {
             storage.delete(key);
         } catch (StorageAccessException e) {
-            logger.error("Delete exception. [key="+key+"]", e);
+            throw new CacheWritingException("Delete exception. [key="+key+"]", e);
         }
     }
 
@@ -126,7 +123,7 @@ public class RedisCache implements ExtendCache {
             for (String key : keys) {
                 keyBuilder.append(key).append(", ");
             }
-            logger.error("Multiple delete exception.[keys="+keyBuilder+"]", e);
+            throw new CacheWritingException("Multiple delete exception.[keys="+keyBuilder+"]", e);
         }
     }
 
@@ -139,9 +136,8 @@ public class RedisCache implements ExtendCache {
         try {
             return storage.get(key);
         } catch (StorageAccessException e) {
-            logger.error("Get exception", e);
+            throw new CacheLoadingException("Get exception", e);
         }
-        return null;
     }
 
     @Override
@@ -151,7 +147,8 @@ public class RedisCache implements ExtendCache {
         try {
             storage.set(key, value);
         } catch (StorageAccessException e) {
-            logger.error("Set exception", e);
+            // todo 信息不全， key， value 信息需要
+            throw new CacheWritingException("Set exception", e);
         }
     }
 
@@ -164,9 +161,8 @@ public class RedisCache implements ExtendCache {
         try {
             return storage.llen(key);
         } catch (StorageAccessException e) {
-            logger.error("List length exception", e);
+            throw new CacheLoadingException("List length exception", e);
         }
-        return 0;
     }
 
     @Override
@@ -176,9 +172,8 @@ public class RedisCache implements ExtendCache {
         try {
             return storage.lrang(key, start, end);
         } catch (StorageAccessException e) {
-            logger.error("List range exception", e);
+            throw new CacheLoadingException("List range exception", e);
         }
-        return null;
     }
 
     @Override
@@ -188,9 +183,8 @@ public class RedisCache implements ExtendCache {
         try {
             return storage.lindex(key, index);
         } catch (StorageAccessException e) {
-            logger.error("List index exception", e);
+            throw new CacheLoadingException("List index exception", e);
         }
-        return null;
     }
 
     @Override
@@ -200,9 +194,8 @@ public class RedisCache implements ExtendCache {
         try {
             return storage.lrem(key, count, valueToRemove);
         } catch (StorageAccessException e) {
-            logger.error("List remove exception", e);
+            throw new CacheWritingException("List remove exception", e);
         }
-        return 0;
     }
 
     @Override
@@ -212,9 +205,8 @@ public class RedisCache implements ExtendCache {
         try {
             return storage.lpush(key, value);
         } catch (StorageAccessException e) {
-            logger.error("List left push exception", e);
+            throw new CacheWritingException("List left push exception", e);
         }
-        return false;
     }
 
     @Override
@@ -224,9 +216,8 @@ public class RedisCache implements ExtendCache {
         try {
             return storage.lpush(key, values);
         } catch (StorageAccessException e) {
-            logger.error("List left push exception", e);
+            throw new CacheWritingException("List left push exception", e);
         }
-        return false;
     }
 
     @Override
@@ -237,8 +228,8 @@ public class RedisCache implements ExtendCache {
             return storage.lpop(key);
         } catch (StorageAccessException e) {
             logger.error("List left pop exception", e);
+            throw new CacheWritingException("List left pop exception", e);
         }
-        return null;
     }
 
     @Override
@@ -248,9 +239,8 @@ public class RedisCache implements ExtendCache {
         try {
             return storage.rpush(key, value);
         } catch (StorageAccessException e) {
-            logger.error("List right push exception", e);
+            throw new CacheWritingException("List right push exception", e);
         }
-        return false;
     }
 
     @Override
@@ -258,12 +248,10 @@ public class RedisCache implements ExtendCache {
         statusTransitioner.checkAvailable();
         checkNonNull(key, values);
         try {
-            // todo expore time
             return storage.rpush(key, values);
         } catch (StorageAccessException e) {
-            logger.error("List right push exception", e);
+            throw new CacheWritingException("List right push exception", e);
         }
-        return false;
     }
 
     @Override
@@ -273,9 +261,8 @@ public class RedisCache implements ExtendCache {
         try {
             return storage.rpop(key);
         } catch (StorageAccessException e) {
-            logger.error("List right pop exception", e);
+            throw new CacheWritingException("List right pop exception", e);
         }
-        return null;
     }
 
     // ----------------------------------- set method -----------------------------------
@@ -386,15 +373,12 @@ public class RedisCache implements ExtendCache {
         throw new UnsupportedOperationException("RedisCache is not support writer function");
     }
 
-    /*@Override
-    public void setWithWriter(String key, Cacheable value, CacheWriter cacheWriter) throws CacheWritingException {
-        throw new UnsupportedOperationException("RedisCache is not support writer function");
-    }*/
-
     @Override
     public void lpushWithWriter(String key, Cacheable... values) throws CacheWritingException {
         throw new UnsupportedOperationException("RedisCache is not support writer function");
     }
+
+
 
     @Override
     public void init() {
