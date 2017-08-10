@@ -26,7 +26,7 @@ public interface CacheLoader {
     Cacheable load(String key) throws Exception;
 
 //    Map<String, Cacheable> loadAll(Iterable<String> keys) throws BulkCacheLoadingException, Exception;
-    List<Cacheable> loadListRange(String key, long start, long end) throws Exception;
+    List<Cacheable> loadListRange(String key, long start, long end) throws BulkCacheLoadingException, Exception;
 
     Set<Cacheable> loadSet(String key) throws BulkCacheLoadingException, Exception;
 }

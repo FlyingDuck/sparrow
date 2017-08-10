@@ -59,14 +59,14 @@ public interface Storage extends ConfigurationChangeSupport {
     // left ops
     boolean lpush(String key, Cacheable value) throws StorageAccessException;
 
-    boolean lpush(String key, Cacheable... values) throws StorageAccessException;
+    long lpush(String key, Cacheable... values) throws StorageAccessException;
 
     String lpop(String key) throws StorageAccessException;
 
     // right ops
     boolean rpush(String key, Cacheable value) throws StorageAccessException;
 
-    boolean rpush(String key, Cacheable... values) throws StorageAccessException;
+    long rpush(String key, Cacheable... values) throws StorageAccessException;
 
     String rpop(String key) throws StorageAccessException;
 
@@ -92,7 +92,9 @@ public interface Storage extends ConfigurationChangeSupport {
 
     void handleSet(String key, Function<String, Cacheable> setFunc) throws StorageAccessException;
 
-    void handleLLPush(String key, PushFunction<String, Cacheable> lpushFunc) throws StorageAccessException;
+    long handleLLPush(String key, PushFunction<String, Cacheable> lpushFunc) throws StorageAccessException;
+
+    long handleLRPush(String key, PushFunction<String, Cacheable> rpushFunc) throws StorageAccessException;
 
     long handleSetAdd(String key, AddFunction<String, Cacheable> addFunc) throws StorageAccessException;
 

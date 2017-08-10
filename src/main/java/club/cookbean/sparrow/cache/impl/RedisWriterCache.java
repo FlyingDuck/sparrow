@@ -121,41 +121,10 @@ public class RedisWriterCache extends RedisCache {
         }
     }
 
-    /*@Override
-    public void setWithWriter(String key, final Cacheable value, final CacheWriter singleCacheWriter) throws CacheWritingException {
-        statusTransitioner.checkAvailable();
-        checkNonNull(key, value);
-        Function<String, Cacheable> setFunction = MemoizingFunction.memoize(new Function<String, Cacheable>() {
-            @Override
-            public Cacheable apply(String key) {
-                try {
-                    singleCacheWriter.write(key, value);
-                } catch (Exception e) {
-                    throw new StoragePassThroughException(new CacheWritingException(e));
-                }
-                return value;
-            }
-        });
-
-        try {
-            storage.handleSet(key, setFunction);
-        } catch (StorageAccessException ex) {
-            try {
-                setFunction.apply(key);
-            } catch (StoragePassThroughException e) {
-                // todo 重试策略
-                return;
-            } finally {
-
-            }
-        }
-    }*/
-
     @Override
-    public void lpushWithWriter(String key, final Cacheable... values) throws CacheWritingException {
+    public long lpushWithWriter(String key, final Cacheable... values) throws CacheWritingException {
         statusTransitioner.checkAvailable();
         checkNonNull(key, values);
-
 
         PushFunction<String, Cacheable> lpushFunc = MemoizingPushFunction.memoize(new PushFunction<String, Cacheable>() {
             @Override
@@ -175,21 +144,55 @@ public class RedisWriterCache extends RedisCache {
         });
 
         try {
-            storage.handleLLPush(key, lpushFunc);
+            return storage.handleLLPush(key, lpushFunc);
         } catch (StorageAccessException ex) {
             try {
-                lpushFunc.apply(key);
+                List<Cacheable> writeValues = lpushFunc.apply(key);
+                return null != writeValues ? writeValues.size() : 0;
             } catch (StoragePassThroughException e) {
 
             } finally {
 
             }
         }
+        return 0;
     }
 
     public long rpushWithWriter(String key, final Cacheable... values) throws CacheWritingException {
-        // todo
-        return -1;
+        statusTransitioner.checkAvailable();
+        checkNonNull(key, values);
+
+
+        PushFunction<String, Cacheable> rpushFunc = MemoizingPushFunction.memoize(new PushFunction<String, Cacheable>() {
+            @Override
+            public List<Cacheable> apply(String key) {
+                List<Cacheable> pushList = new ArrayList<>(values.length);
+                try {
+                    List<Map.Entry<String, Cacheable>> entries = new ArrayList<>(values.length);
+                    for (Cacheable value : values) {
+                        entries.add(new AbstractMap.SimpleEntry<>(key, value));
+                    }
+                    cacheWriter.writeAll(entries);
+                } catch (Exception e) {
+                    throw new StoragePassThroughException(new CacheWritingException(e));
+                }
+                return pushList;
+            }
+        });
+
+        try {
+            return storage.handleLRPush(key, rpushFunc);
+        } catch (StorageAccessException ex) {
+            try {
+                List<Cacheable> writeValues = rpushFunc.apply(key);
+                return null != writeValues ? writeValues.size() : 0;
+            } catch (StoragePassThroughException e) {
+
+            } finally {
+
+            }
+        }
+        return 0;
     }
 
     @Override

@@ -210,7 +210,7 @@ public class RedisCache implements ExtendCache {
     }
 
     @Override
-    public boolean lpush(String key, Cacheable... values) throws CacheWritingException {
+    public long lpush(String key, Cacheable... values) throws CacheWritingException {
         statusTransitioner.checkAvailable();
         checkNonNull(key, values);
         try {
@@ -244,7 +244,7 @@ public class RedisCache implements ExtendCache {
     }
 
     @Override
-    public boolean rpush(String key, Cacheable... values) throws CacheWritingException {
+    public long rpush(String key, Cacheable... values) throws CacheWritingException {
         statusTransitioner.checkAvailable();
         checkNonNull(key, values);
         try {
@@ -384,9 +384,10 @@ public class RedisCache implements ExtendCache {
     }
 
     @Override
-    public void lpushWithWriter(String key, Cacheable... values) throws CacheWritingException {
+    public long lpushWithWriter(String key, Cacheable... values) throws CacheWritingException {
         throw new UnsupportedOperationException("RedisCache is not support writer function");
     }
+
 
     @Override
     public long saddWithWriter(String key, Cacheable... values) throws CacheWritingException {

@@ -6,6 +6,7 @@ import club.cookbean.sparrow.builder.RedisConnectorBuilder;
 import club.cookbean.sparrow.builder.RedisResourceBuilder;
 import club.cookbean.sparrow.cache.Cache;
 import club.cookbean.sparrow.cache.CacheManager;
+import club.cookbean.sparrow.exception.BulkCacheLoadingException;
 import club.cookbean.sparrow.exception.BulkCacheWritingException;
 import club.cookbean.sparrow.loader.CacheLoader;
 import club.cookbean.sparrow.redis.Cacheable;
@@ -17,6 +18,7 @@ import redis.clients.jedis.HostAndPort;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by Bennett Dong <br>
@@ -75,6 +77,11 @@ public class RedisWriterLoaderCacheTest {
 
             @Override
             public List<Cacheable> loadListRange(String key, long start, long end) throws Exception {
+                return null;
+            }
+
+            @Override
+            public Set<Cacheable> loadSet(String key) throws BulkCacheLoadingException, Exception {
                 return null;
             }
         };

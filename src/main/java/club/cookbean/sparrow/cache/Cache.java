@@ -60,14 +60,14 @@ public interface Cache extends Loadable, Writable {
     // left ops
     boolean lpush(String key, Cacheable value) throws CacheWritingException;
 
-    boolean lpush(String key, Cacheable... values) throws CacheWritingException;
+    long lpush(String key, Cacheable... values) throws CacheWritingException;
 
     String lpop(String key) throws CacheWritingException;
 
     // right ops
     boolean rpush(String key, Cacheable value) throws CacheWritingException;
 
-    boolean rpush(String key, Cacheable... values) throws CacheWritingException;
+    long rpush(String key, Cacheable... values) throws CacheWritingException;
 
     String rpop(String key) throws CacheWritingException;
 
