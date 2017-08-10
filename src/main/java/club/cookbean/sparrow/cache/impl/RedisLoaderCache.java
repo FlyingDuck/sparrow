@@ -18,11 +18,7 @@ import club.cookbean.sparrow.config.CacheConfiguration;
 import club.cookbean.sparrow.exception.CacheLoadingException;
 import club.cookbean.sparrow.exception.StorageAccessException;
 import club.cookbean.sparrow.function.Function;
-import club.cookbean.sparrow.function.RangeFunction;
-import club.cookbean.sparrow.function.MembersFunction;
 import club.cookbean.sparrow.function.impl.MemoizingFunction;
-import club.cookbean.sparrow.function.impl.MemoizingRangeFunction;
-import club.cookbean.sparrow.function.impl.MemoizingMembersFunction;
 import club.cookbean.sparrow.loader.CacheLoader;
 import club.cookbean.sparrow.redis.Cacheable;
 import club.cookbean.sparrow.storage.Storage;
@@ -107,12 +103,12 @@ public class RedisLoaderCache extends RedisCache {
         this.statusTransitioner.checkAvailable();
         checkNonNull(key);
 
-        RangeFunction<String, Long, Long, Cacheable> rangeFunction = MemoizingRangeFunction.memoize(new RangeFunction<String, Long, Long, Cacheable>() {
+        Function<String, List<Cacheable>> rangeFunction = MemoizingFunction.memoize(new Function<String, List<Cacheable>>() {
             @Override
-            public List<Cacheable> apply(String key, Long start, Long end) {
+            public List<Cacheable> apply(String key) {
                 List<Cacheable> values = null;
                 try {
-                    values = definedCacheLoader.loadListRange(key, start, end);
+                    values = definedCacheLoader.loadList(key);
                 } catch (Exception e) {
                     logger.error(e.getMessage(), e);
                 }
@@ -123,8 +119,8 @@ public class RedisLoaderCache extends RedisCache {
         try {
             return storage.handleListRange(key, start, end, rangeFunction);
         } catch (StorageAccessException e) {
-            List<Cacheable> valueObjs = rangeFunction.apply(key, start, end);
-            List<String> values = new ArrayList<>(valueObjs.size());
+            Iterable<Cacheable> valueObjs = rangeFunction.apply(key);
+            List<String> values = new ArrayList<>();
             for (Cacheable obj : valueObjs) {
                 values.add(obj.getValue());
             }
@@ -142,9 +138,9 @@ public class RedisLoaderCache extends RedisCache {
         this.statusTransitioner.checkAvailable();
         checkNonNull(key);
 
-        MembersFunction<String, Cacheable> setFunc = MemoizingMembersFunction.memoize(new MembersFunction<String, Cacheable>() {
+        Function<String, Set<? extends Cacheable>> setFunc = MemoizingFunction.memoize(new Function<String, Set<? extends Cacheable>>() {
             @Override
-            public Set<Cacheable> apply(String s) {
+            public Set<? extends Cacheable> apply(String s) {
                 Set<Cacheable> values = null;
                 try {
                     values = definedCacheLoader.loadSet(key);
@@ -158,7 +154,7 @@ public class RedisLoaderCache extends RedisCache {
         try {
             return storage.handleSetMembers(key, setFunc);
         } catch (StorageAccessException e) {
-            Set<Cacheable> loadValues = setFunc.apply(key);
+            Set<? extends Cacheable> loadValues = setFunc.apply(key);
             Set<String> values = new HashSet<>(loadValues.size());
             for (Cacheable cacheable : loadValues) {
                 values.add(cacheable.getKey());

@@ -16,9 +16,10 @@ import java.util.Set;
  */
 public abstract class SingleCacheLoader implements CacheLoader {
 
+
     @Override
-    public List<Cacheable> loadListRange(String key, long start, long end) throws Exception {
-        throw new UnsupportedOperationException("SingleCacheLoader cannot load list range");
+    public List<Cacheable> loadList(String key) throws BulkCacheLoadingException, Exception {
+        throw new UnsupportedOperationException("SingleCacheLoader cannot load list");
     }
 
     @Override

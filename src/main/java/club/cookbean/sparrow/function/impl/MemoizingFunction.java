@@ -22,7 +22,7 @@ public class MemoizingFunction<key, Result> implements Function<key, Result> {
     private boolean handled;
     private Result result;
 
-    public static <A, R> MemoizingFunction<A, R> memoize(Function<A, R> function) {
+    public static <key, Result> MemoizingFunction<key, Result> memoize(Function<key, Result> function) {
         return new MemoizingFunction<>(function);
     }
 

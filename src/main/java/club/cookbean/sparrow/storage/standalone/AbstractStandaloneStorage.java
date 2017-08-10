@@ -511,11 +511,11 @@ public abstract class AbstractStandaloneStorage implements Storage {
     }
 
     @Override
-    public List<String> handleListRange(String key, long start, long end, RangeFunction<String, Long, Long, Cacheable> rangeFunction) throws StorageAccessException {
+    public List<String> handleListRange(String key, long start, long end, Function<String, List<Cacheable>> rangeFunction) throws StorageAccessException {
         List<String> values = this.lrang(key, start, end);
         if (null == values || values.isEmpty()) {
-            List<Cacheable> loadValues = rangeFunction.apply(key, start, end);
-            if (null != loadValues && !loadValues.isEmpty()) {
+            List<Cacheable> loadValues = rangeFunction.apply(key);
+            if (null != loadValues) {
                 values = new ArrayList<>(loadValues.size());
                 Cacheable[] loadArray = new Cacheable[loadValues.size()];
                 for (int i = 0, size = loadValues.size(); i < size; i++) {
@@ -523,17 +523,17 @@ public abstract class AbstractStandaloneStorage implements Storage {
                     values.add(loadValues.get(i).getValue());
                 }
                 // todo left operation or right operation ?
-                this.lpush(key, loadArray);
+                this.rpush(key, loadArray);
             }
         }
         return values;
     }
 
     @Override
-    public Set<String> handleSetMembers(String key, MembersFunction<String, Cacheable> setFunc) throws StorageAccessException {
+    public Set<String> handleSetMembers(String key, Function<String, Set<? extends Cacheable>> setFunc) throws StorageAccessException {
         Set<String> values = this.smembers(key);
         if (null == values || values.isEmpty()) {
-            Set<Cacheable> loadValues = setFunc.apply(key);
+            Set<? extends Cacheable> loadValues = setFunc.apply(key);
             values = new HashSet<>(loadValues.size());
             Cacheable[] loadArray = new Cacheable[loadValues.size()];
             int index = 0;

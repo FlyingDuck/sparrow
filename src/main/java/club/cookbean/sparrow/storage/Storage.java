@@ -101,9 +101,9 @@ public interface Storage extends ConfigurationChangeSupport {
     // =============================== handle load ===============================
     String handleGet(String key, Function<String, Cacheable> getFunc) throws StorageAccessException;
 
-    List<String> handleListRange(String key, long start, long end, RangeFunction<String, Long, Long, Cacheable> rangeFunction) throws StorageAccessException;
+    List<String> handleListRange(String key, long start, long end, Function<String, List<Cacheable>> rangeFunction) throws StorageAccessException;
 
-    Set<String> handleSetMembers(String key, MembersFunction<String, Cacheable> setFunc) throws StorageAccessException;
+    Set<String> handleSetMembers(String key, Function<String, Set<? extends Cacheable>> setFunc) throws StorageAccessException;
 
 
     String normalizeKey(String key);

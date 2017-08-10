@@ -76,7 +76,7 @@ public class RedisWriterLoaderCacheTest {
             }
 
             @Override
-            public List<Cacheable> loadListRange(String key, long start, long end) throws Exception {
+            public List<Cacheable> loadList(String key) throws Exception {
                 return null;
             }
 
