@@ -19,15 +19,19 @@ import club.cookbean.sparrow.exception.CacheLoadingException;
 import club.cookbean.sparrow.exception.StorageAccessException;
 import club.cookbean.sparrow.function.Function;
 import club.cookbean.sparrow.function.RangeFunction;
+import club.cookbean.sparrow.function.MembersFunction;
 import club.cookbean.sparrow.function.impl.MemoizingFunction;
 import club.cookbean.sparrow.function.impl.MemoizingRangeFunction;
+import club.cookbean.sparrow.function.impl.MemoizingMembersFunction;
 import club.cookbean.sparrow.loader.CacheLoader;
 import club.cookbean.sparrow.redis.Cacheable;
 import club.cookbean.sparrow.storage.Storage;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by Bennett Dong <br>
@@ -126,5 +130,41 @@ public class RedisLoaderCache extends RedisCache {
             }
             return values;
         }
+    }
+
+    @Override
+    public Set<String> smembersWithLoader(String key) throws CacheLoadingException {
+        return smembersWithLoader(key, cacheLoader);
+    }
+
+    @Override
+    public Set<String> smembersWithLoader(final String key, final CacheLoader definedCacheLoader) throws CacheLoadingException {
+        this.statusTransitioner.checkAvailable();
+        checkNonNull(key);
+
+        MembersFunction<String, Cacheable> setFunc = MemoizingMembersFunction.memoize(new MembersFunction<String, Cacheable>() {
+            @Override
+            public Set<Cacheable> apply(String s) {
+                Set<Cacheable> values = null;
+                try {
+                    values = definedCacheLoader.loadSet(key);
+                } catch (Exception e) {
+                    logger.error(e.getMessage(), e);
+                }
+                return values;
+            }
+        });
+
+        try {
+            return storage.handleSetMembers(key, setFunc);
+        } catch (StorageAccessException e) {
+            Set<Cacheable> loadValues = setFunc.apply(key);
+            Set<String> values = new HashSet<>(loadValues.size());
+            for (Cacheable cacheable : loadValues) {
+                values.add(cacheable.getKey());
+            }
+            return values;
+        }
+
     }
 }

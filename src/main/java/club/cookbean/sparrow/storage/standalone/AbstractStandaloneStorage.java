@@ -15,9 +15,7 @@
 package club.cookbean.sparrow.storage.standalone;
 
 import club.cookbean.sparrow.exception.StorageAccessException;
-import club.cookbean.sparrow.function.Function;
-import club.cookbean.sparrow.function.PushFunction;
-import club.cookbean.sparrow.function.RangeFunction;
+import club.cookbean.sparrow.function.*;
 import club.cookbean.sparrow.redis.Cacheable;
 import club.cookbean.sparrow.storage.Storage;
 import org.slf4j.Logger;
@@ -27,10 +25,7 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.Pipeline;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by Bennett Dong <br>
@@ -137,15 +132,17 @@ public abstract class AbstractStandaloneStorage implements Storage {
     }
 
     @Override
-    public void set(String key, Cacheable value) throws StorageAccessException {
+    public boolean set(String key, Cacheable value) throws StorageAccessException {
         String finalKey = normalizeKey(key);
         Jedis jedis = jedisPool.getResource();
         Pipeline pipeline = jedis.pipelined();
         try {
             pipeline.set(finalKey, value.getValue());
             pipeline.pexpire(finalKey, value.getExpireTime());
-            //List<Object> result = pipeline.syncAndReturnAll();
-            pipeline.sync();
+            List<Object> results = pipeline.syncAndReturnAll();
+//            pipeline.sync();
+            // todo 判断是否成功
+            return true;
         } catch (Exception e) {
             throw new StorageAccessException(e);
         } finally {
@@ -364,21 +361,26 @@ public abstract class AbstractStandaloneStorage implements Storage {
     }
 
     @Override
-    public boolean sadd(String key, Cacheable... values) throws StorageAccessException {
+    public long sadd(String key, Cacheable... values) throws StorageAccessException {
         String finalKey = normalizeKey(key);
         Jedis jedis = jedisPool.getResource();
+        Pipeline pipeline = jedis.pipelined();
         try {
             String[] valueArray = new String[values.length];
             for (int i=0; i<values.length; i++) {
                 valueArray[i] = values[i].getKey();
             }
-            Long result = jedis.sadd(finalKey, valueArray);
-            return null != result && result > 0;
+            pipeline.sadd(finalKey, valueArray);
+            pipeline.pexpire(finalKey, values[0].getExpireTime());
+            List<Object> results = pipeline.syncAndReturnAll();
+            // todo 返回结果
+            return values.length;
+            //Long result = jedis.sadd(finalKey, valueArray);
+            //return null != result && result > 0;
         } catch (Exception e) {
             throw new StorageAccessException(e);
         } finally {
-            if (null != jedis)
-                jedis.close();
+            jedis.close();
         }
     }
 
@@ -430,10 +432,20 @@ public abstract class AbstractStandaloneStorage implements Storage {
     @Override
     public void handleLLPush(String key, PushFunction<String, Cacheable> lpushFunc) throws StorageAccessException {
         List<Cacheable> pushList = lpushFunc.apply(key);
-        if (null != pushList) {
+        if (null != pushList && !pushList.isEmpty()) {
             Cacheable[] writeArray = new Cacheable[pushList.size()];
             this.lpush(key, pushList.toArray(writeArray));
         }
+    }
+
+    @Override
+    public long handleSetAdd(String key, AddFunction<String, Cacheable> addFunc) throws StorageAccessException {
+        Set<Cacheable> writeValues = addFunc.apply(key);
+        if (null != writeValues && !writeValues.isEmpty()) {
+            Cacheable[] writeArray = new Cacheable[writeValues.size()];
+            return this.sadd(key, writeValues.toArray(writeArray));
+        }
+        return 0;
     }
 
     // ++++++++++++++++++++++++++++ handle load ++++++++++++++++++++++++++++
@@ -468,6 +480,23 @@ public abstract class AbstractStandaloneStorage implements Storage {
                 // todo left operation or right operation ?
                 this.lpush(key, loadArray);
             }
+        }
+        return values;
+    }
+
+    @Override
+    public Set<String> handleSetMembers(String key, MembersFunction<String, Cacheable> setFunc) throws StorageAccessException {
+        Set<String> values = this.smembers(key);
+        if (null == values || values.isEmpty()) {
+            Set<Cacheable> loadValues = setFunc.apply(key);
+            values = new HashSet<>(loadValues.size());
+            Cacheable[] loadArray = new Cacheable[loadValues.size()];
+            int index = 0;
+            for (Cacheable loadValue : loadValues) {
+                loadArray[index++] = loadValue;
+                values.add(loadValue.getKey());
+            }
+            this.sadd(key, loadArray);
         }
         return values;
     }

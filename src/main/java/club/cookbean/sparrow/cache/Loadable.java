@@ -18,6 +18,7 @@ import club.cookbean.sparrow.exception.CacheLoadingException;
 import club.cookbean.sparrow.loader.CacheLoader;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by Bennett Dong <br>
@@ -36,5 +37,11 @@ public interface Loadable {
     List<String> lrangeWithLoader(String key, long start, long end) throws CacheLoadingException;
 
     List<String> lrangeWithLoader(String key, long start, long end, CacheLoader definedCacheLoader) throws CacheLoadingException;
+
+    // set
+    Set<String> smembersWithLoader(String key) throws CacheLoadingException;
+
+    Set<String> smembersWithLoader(String key, CacheLoader definedCacheLoader) throws CacheLoadingException;
+
 
 }

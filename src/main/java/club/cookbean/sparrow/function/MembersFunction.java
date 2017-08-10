@@ -12,21 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package club.cookbean.sparrow.loader;
-
-
-import club.cookbean.sparrow.exception.BulkCacheLoadingException;
-import club.cookbean.sparrow.redis.Cacheable;
+package club.cookbean.sparrow.function;
 
 import java.util.List;
 import java.util.Set;
 
-public interface CacheLoader {
+/**
+ * Created by Bennett Dong <br>
+ * Date : 2017/8/7 <br>
+ * Mail: dongshujin.beans@gmail.com <br> <br>
+ * Desc:
+ */
+public interface MembersFunction<Key, Value> {
 
-    Cacheable load(String key) throws Exception;
-
-//    Map<String, Cacheable> loadAll(Iterable<String> keys) throws BulkCacheLoadingException, Exception;
-    List<Cacheable> loadListRange(String key, long start, long end) throws Exception;
-
-    Set<Cacheable> loadSet(String key) throws BulkCacheLoadingException, Exception;
+    Set<Value> apply(Key key);
 }

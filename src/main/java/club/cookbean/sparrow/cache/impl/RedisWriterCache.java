@@ -18,8 +18,10 @@ import club.cookbean.sparrow.config.CacheConfiguration;
 import club.cookbean.sparrow.exception.CacheWritingException;
 import club.cookbean.sparrow.exception.StorageAccessException;
 import club.cookbean.sparrow.exception.StoragePassThroughException;
+import club.cookbean.sparrow.function.AddFunction;
 import club.cookbean.sparrow.function.Function;
 import club.cookbean.sparrow.function.PushFunction;
+import club.cookbean.sparrow.function.impl.MemoizingAddFunction;
 import club.cookbean.sparrow.function.impl.MemoizingFunction;
 import club.cookbean.sparrow.function.impl.MemoizingPushFunction;
 import club.cookbean.sparrow.redis.Cacheable;
@@ -158,7 +160,7 @@ public class RedisWriterCache extends RedisCache {
         PushFunction<String, Cacheable> lpushFunc = MemoizingPushFunction.memoize(new PushFunction<String, Cacheable>() {
             @Override
             public List<Cacheable> apply(String key) {
-                List<Cacheable> list = new ArrayList<>(values.length);
+                List<Cacheable> pushList = new ArrayList<>(values.length);
                 try {
                     List<Map.Entry<String, Cacheable>> entries = new ArrayList<>(values.length);
                     for (Cacheable value : values) {
@@ -168,7 +170,7 @@ public class RedisWriterCache extends RedisCache {
                 } catch (Exception e) {
                     throw new StoragePassThroughException(new CacheWritingException(e));
                 }
-                return list;
+                return pushList;
             }
         });
 
@@ -183,6 +185,49 @@ public class RedisWriterCache extends RedisCache {
 
             }
         }
+    }
 
+    public long rpushWithWriter(String key, final Cacheable... values) throws CacheWritingException {
+        // todo
+        return -1;
+    }
+
+    @Override
+    public long saddWithWriter(final String key, final Cacheable... values) throws CacheWritingException {
+        statusTransitioner.checkAvailable();
+        checkNonNull(key, values);
+
+        AddFunction<String, Cacheable> addFunc = MemoizingAddFunction.memoize(new AddFunction<String, Cacheable>() {
+            @Override
+            public Set<Cacheable> apply(String s) {
+                Set<Cacheable> writeValues = new HashSet<>(values.length);
+                try {
+                    List<Map.Entry<String, Cacheable>> entries = new ArrayList<>(values.length);
+                    for (Cacheable value : values) {
+                        writeValues.add(value);
+                        entries.add(new AbstractMap.SimpleEntry<>(key, value));
+                    }
+                    cacheWriter.writeAll(entries);
+                } catch (Exception e) {
+                    throw new StoragePassThroughException(new CacheWritingException(e));
+                }
+                return writeValues;
+            }
+        });
+
+        try {
+            return storage.handleSetAdd(key, addFunc);
+        } catch (StorageAccessException e) {
+            try {
+                Set<Cacheable> writeValues = addFunc.apply(key);
+                return null != writeValues ? writeValues.size() : 0;
+            } catch (StoragePassThroughException ex) {
+
+            } finally {
+
+            }
+        }
+
+        return 0;
     }
 }

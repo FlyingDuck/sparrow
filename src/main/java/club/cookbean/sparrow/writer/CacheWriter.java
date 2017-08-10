@@ -27,7 +27,6 @@ import java.util.Map;
  * Desc:
  */
 public interface CacheWriter {
-    // TODO  write / writeAll / delete / appendList / setWithWriter / writeMap ...
 
     void write(String key, Cacheable value) throws Exception;
 

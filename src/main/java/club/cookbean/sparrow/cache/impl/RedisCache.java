@@ -141,11 +141,11 @@ public class RedisCache implements ExtendCache {
     }
 
     @Override
-    public void set(String key, Cacheable value) throws CacheWritingException {
+    public boolean set(String key, Cacheable value) throws CacheWritingException {
         statusTransitioner.checkAvailable();
         checkNonNull(key, value);
         try {
-            storage.set(key, value);
+            return storage.set(key, value);
         } catch (StorageAccessException e) {
             // todo 信息不全， key， value 信息需要
             throw new CacheWritingException("Set exception", e);
@@ -312,7 +312,7 @@ public class RedisCache implements ExtendCache {
     }
 
     @Override
-    public boolean sadd(String key, Cacheable... values) throws CacheWritingException {
+    public long sadd(String key, Cacheable... values) throws CacheWritingException {
         statusTransitioner.checkAvailable();
         checkNonNull(key);
         try {
@@ -356,6 +356,16 @@ public class RedisCache implements ExtendCache {
         throw new UnsupportedOperationException("RedisCache is not support loader function");
     }
 
+    @Override
+    public Set<String> smembersWithLoader(String key) throws CacheLoadingException {
+        throw new UnsupportedOperationException("RedisCache is not support loader function");
+    }
+
+    @Override
+    public Set<String> smembersWithLoader(String key, CacheLoader definedCacheLoader) throws CacheLoadingException {
+        throw new UnsupportedOperationException("RedisCache is not support loader function");
+    }
+
     // ----------------------------------- writer method -----------------------------------
 
     @Override
@@ -378,7 +388,10 @@ public class RedisCache implements ExtendCache {
         throw new UnsupportedOperationException("RedisCache is not support writer function");
     }
 
-
+    @Override
+    public long saddWithWriter(String key, Cacheable... values) throws CacheWritingException {
+        throw new UnsupportedOperationException("RedisCache is not support writer function");
+    }
 
     @Override
     public void init() {
