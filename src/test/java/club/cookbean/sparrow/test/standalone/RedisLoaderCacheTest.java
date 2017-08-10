@@ -17,6 +17,7 @@ import redis.clients.jedis.HostAndPort;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by Bennett Dong <br>
@@ -74,8 +75,13 @@ public class RedisLoaderCacheTest {
             }
 
             @Override
-            public List<Cacheable> loadListRange(String key, long start, long end) throws Exception {
+            public List<Cacheable> loadList(String key) throws Exception {
                 // todo
+                return null;
+            }
+
+            @Override
+            public Set<Cacheable> loadSet(String key) throws BulkCacheLoadingException, Exception {
                 return null;
             }
         };

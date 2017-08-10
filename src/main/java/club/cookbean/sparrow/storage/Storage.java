@@ -17,13 +17,12 @@ package club.cookbean.sparrow.storage;
 
 import club.cookbean.sparrow.annotation.PluralService;
 import club.cookbean.sparrow.exception.StorageAccessException;
-import club.cookbean.sparrow.function.Function;
-import club.cookbean.sparrow.function.PushFunction;
-import club.cookbean.sparrow.function.RangeFunction;
+import club.cookbean.sparrow.function.*;
 import club.cookbean.sparrow.redis.Cacheable;
 import club.cookbean.sparrow.redis.RedisConnector;
 import club.cookbean.sparrow.redis.RedisResource;
 import club.cookbean.sparrow.service.Service;
+import com.sun.javaws.exceptions.CacheAccessException;
 
 import java.util.List;
 import java.util.Set;
@@ -46,7 +45,7 @@ public interface Storage extends ConfigurationChangeSupport {
 
     String get(String key) throws StorageAccessException;
 
-    void set(String key, Cacheable value) throws StorageAccessException;
+    boolean set(String key, Cacheable value) throws StorageAccessException;
 
     // -----------------------  list operation -----------------------
     long llen(String key) throws StorageAccessException;
@@ -60,14 +59,14 @@ public interface Storage extends ConfigurationChangeSupport {
     // left ops
     boolean lpush(String key, Cacheable value) throws StorageAccessException;
 
-    boolean lpush(String key, Cacheable... values) throws StorageAccessException;
+    long lpush(String key, Cacheable... values) throws StorageAccessException;
 
     String lpop(String key) throws StorageAccessException;
 
     // right ops
     boolean rpush(String key, Cacheable value) throws StorageAccessException;
 
-    boolean rpush(String key, Cacheable... values) throws StorageAccessException;
+    long rpush(String key, Cacheable... values) throws StorageAccessException;
 
     String rpop(String key) throws StorageAccessException;
 
@@ -80,7 +79,7 @@ public interface Storage extends ConfigurationChangeSupport {
 
     boolean sadd(String key, Cacheable value) throws StorageAccessException;
 
-    boolean sadd(String key, Cacheable... values) throws StorageAccessException;
+    long sadd(String key, Cacheable... values) throws StorageAccessException;
 
     Set<String> sunion(String... keys) throws StorageAccessException;
 
@@ -93,12 +92,18 @@ public interface Storage extends ConfigurationChangeSupport {
 
     void handleSet(String key, Function<String, Cacheable> setFunc) throws StorageAccessException;
 
-    void handleLLPush(String key, PushFunction<String, Cacheable> lpushFunc) throws StorageAccessException;
+    long handleLLPush(String key, Function<String, List<? extends Cacheable>> lpushFunc) throws StorageAccessException;
+
+    long handleLRPush(String key, Function<String, List<? extends Cacheable>> rpushFunc) throws StorageAccessException;
+
+    long handleSetAdd(String key, Function<String, Set<? extends Cacheable>> addFunc) throws StorageAccessException;
 
     // =============================== handle load ===============================
     String handleGet(String key, Function<String, Cacheable> getFunc) throws StorageAccessException;
 
-    List<String> handleListRange(String key, long start, long end, RangeFunction<String, Long, Long, Cacheable> rangeFunction) throws StorageAccessException;
+    List<String> handleListRange(String key, long start, long end, Function<String, List<Cacheable>> rangeFunction) throws StorageAccessException;
+
+    Set<String> handleSetMembers(String key, Function<String, Set<? extends Cacheable>> setFunc) throws StorageAccessException;
 
 
     String normalizeKey(String key);

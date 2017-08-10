@@ -15,9 +15,7 @@
 package club.cookbean.sparrow.storage.standalone;
 
 import club.cookbean.sparrow.exception.StorageAccessException;
-import club.cookbean.sparrow.function.Function;
-import club.cookbean.sparrow.function.PushFunction;
-import club.cookbean.sparrow.function.RangeFunction;
+import club.cookbean.sparrow.function.*;
 import club.cookbean.sparrow.redis.Cacheable;
 import club.cookbean.sparrow.storage.Storage;
 import org.slf4j.Logger;
@@ -27,10 +25,7 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.Pipeline;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by Bennett Dong <br>
@@ -137,26 +132,29 @@ public abstract class AbstractStandaloneStorage implements Storage {
     }
 
     @Override
-    public void set(String key, Cacheable value) throws StorageAccessException {
+    public boolean set(String key, Cacheable value) throws StorageAccessException {
         String finalKey = normalizeKey(key);
         Jedis jedis = jedisPool.getResource();
         Pipeline pipeline = jedis.pipelined();
         try {
             pipeline.set(finalKey, value.getValue());
             pipeline.pexpire(finalKey, value.getExpireTime());
-            //List<Object> result = pipeline.syncAndReturnAll();
-            pipeline.sync();
+            List<Object> results = pipeline.syncAndReturnAll();
+//            pipeline.sync();
+            // todo 判断是否成功
+            return true;
         } catch (Exception e) {
             throw new StorageAccessException(e);
         } finally {
-            if (null != pipeline) {
-                try {
+            try {
+                if (null != pipeline) {
                     pipeline.close();
-                } catch (IOException e) {
-                    LOGGER.error("Pipeline close fail", e);
                 }
+            } catch (IOException e) {
+                LOGGER.error("Pipeline close fail", e);
+            } finally {
+                jedis.close();
             }
-            jedis.close();
         }
     }
 
@@ -223,8 +221,8 @@ public abstract class AbstractStandaloneStorage implements Storage {
         String finalKey = normalizeKey(key);
         Jedis jedis = jedisPool.getResource();
         try {
-            Long result =  jedis.lpush(finalKey, value.getValue());
-            return result!=null && result>0;
+            Long result = jedis.lpush(finalKey, value.getValue());
+            return result != null && result > 0;
         } catch (Exception e) {
             throw new StorageAccessException(e);
         } finally {
@@ -234,21 +232,33 @@ public abstract class AbstractStandaloneStorage implements Storage {
     }
 
     @Override
-    public boolean lpush(String key, Cacheable... values) throws StorageAccessException {
+    public long lpush(String key, Cacheable... values) throws StorageAccessException {
         String finalKey = normalizeKey(key);
         Jedis jedis = jedisPool.getResource();
+        Pipeline pipeline = jedis.pipelined();
         try {
             String[] strArray = new String[values.length];
-            for (int i=0; i<values.length; i++) {
+            for (int i = 0; i < values.length; i++) {
                 strArray[i] = values[i].getValue();
             }
-            Long result = jedis.lpush(finalKey, strArray);
-            return result != null && result > 0;
+//            Long result = jedis.lpush(finalKey, strArray);
+//            return result != null && result > 0;
+            pipeline.lpush(finalKey, strArray);
+            pipeline.pexpire(finalKey, values[0].getExpireTime());
+            List<Object> results = pipeline.syncAndReturnAll();
+            // todo
+            return values.length;
         } catch (Exception e) {
             throw new StorageAccessException(e);
         } finally {
-            if (null != jedis)
+            try {
+              if (null != pipeline)
+                  pipeline.close();
+            } catch (IOException e) {
+                LOGGER.error("lpush pipeline close exception", e);
+            } finally {
                 jedis.close();
+            }
         }
     }
 
@@ -282,21 +292,34 @@ public abstract class AbstractStandaloneStorage implements Storage {
     }
 
     @Override
-    public boolean rpush(String key, Cacheable... values) throws StorageAccessException {
+    public long rpush(String key, Cacheable... values) throws StorageAccessException {
         String finalKey = normalizeKey(key);
         Jedis jedis = jedisPool.getResource();
+        Pipeline pipeline = jedis.pipelined();
         try {
             String[] strArray = new String[values.length];
-            for (int i=0; i<values.length; i++) {
+            for (int i = 0; i < values.length; i++) {
                 strArray[i] = values[i].getValue();
             }
-            Long result = jedis.rpush(finalKey, strArray);
-            return result != null && result > 0;
+//            Long result = jedis.rpush(finalKey, strArray);
+//            return result != null && result > 0;
+            pipeline.rpush(finalKey, strArray);
+            pipeline.pexpire(finalKey, values[0].getExpireTime());
+            List<Object> results = pipeline.syncAndReturnAll();
+            // todo
+            return values.length;
         } catch (Exception e) {
             throw new StorageAccessException(e);
         } finally {
-            if (null != jedis)
+            try {
+                if (null != pipeline) {
+                    pipeline.close();
+                }
+            } catch (IOException e) {
+                LOGGER.error("rpush pipeline close exception", e);
+            } finally {
                 jedis.close();
+            }
         }
     }
 
@@ -364,28 +387,41 @@ public abstract class AbstractStandaloneStorage implements Storage {
     }
 
     @Override
-    public boolean sadd(String key, Cacheable... values) throws StorageAccessException {
+    public long sadd(String key, Cacheable... values) throws StorageAccessException {
         String finalKey = normalizeKey(key);
         Jedis jedis = jedisPool.getResource();
+        Pipeline pipeline = jedis.pipelined();
         try {
             String[] valueArray = new String[values.length];
-            for (int i=0; i<values.length; i++) {
+            for (int i = 0; i < values.length; i++) {
                 valueArray[i] = values[i].getKey();
             }
-            Long result = jedis.sadd(finalKey, valueArray);
-            return null != result && result > 0;
+            pipeline.sadd(finalKey, valueArray);
+            pipeline.pexpire(finalKey, values[0].getExpireTime());
+            List<Object> results = pipeline.syncAndReturnAll();
+            // todo 返回结果
+            return values.length;
+            //Long result = jedis.sadd(finalKey, valueArray);
+            //return null != result && result > 0;
         } catch (Exception e) {
             throw new StorageAccessException(e);
         } finally {
-            if (null != jedis)
+            try {
+                if (null != pipeline) {
+                    pipeline.close();
+                }
+            } catch (IOException e) {
+                LOGGER.error("sadd pipeline close exception", e);
+            } finally {
                 jedis.close();
+            }
         }
     }
 
     @Override
     public Set<String> sunion(String... keys) throws StorageAccessException {
         String[] finalKeys = new String[keys.length];
-        for (int i=0; i<keys.length; i++) {
+        for (int i = 0; i < keys.length; i++) {
             finalKeys[i] = normalizeKey(keys[i]);
         }
         Jedis jedis = jedisPool.getResource();
@@ -428,12 +464,33 @@ public abstract class AbstractStandaloneStorage implements Storage {
     }
 
     @Override
-    public void handleLLPush(String key, PushFunction<String, Cacheable> lpushFunc) throws StorageAccessException {
-        List<Cacheable> pushList = lpushFunc.apply(key);
-        if (null != pushList) {
+    public long handleLLPush(String key, Function<String, List<? extends Cacheable>> lpushFunc) throws StorageAccessException {
+        List<? extends Cacheable> pushList = lpushFunc.apply(key);
+        if (null != pushList && !pushList.isEmpty()) {
             Cacheable[] writeArray = new Cacheable[pushList.size()];
-            this.lpush(key, pushList.toArray(writeArray));
+            return this.lpush(key, pushList.toArray(writeArray));
         }
+        return 0;
+    }
+
+    @Override
+    public long handleLRPush(String key, Function<String, List<? extends Cacheable>> rpushFunc) throws StorageAccessException {
+        List<? extends Cacheable> pushList = rpushFunc.apply(key);
+        if (null != pushList && !pushList.isEmpty()) {
+            Cacheable[] writeArray = new Cacheable[pushList.size()];
+            return this.rpush(key, writeArray);
+        }
+        return 0;
+    }
+
+    @Override
+    public long handleSetAdd(String key, Function<String, Set<? extends Cacheable>> addFunc) throws StorageAccessException {
+        Set<? extends Cacheable> writeValues = addFunc.apply(key);
+        if (null != writeValues && !writeValues.isEmpty()) {
+            Cacheable[] writeArray = new Cacheable[writeValues.size()];
+            return this.sadd(key, writeValues.toArray(writeArray));
+        }
+        return 0;
     }
 
     // ++++++++++++++++++++++++++++ handle load ++++++++++++++++++++++++++++
@@ -454,20 +511,37 @@ public abstract class AbstractStandaloneStorage implements Storage {
     }
 
     @Override
-    public List<String> handleListRange(String key, long start, long end, RangeFunction<String, Long, Long, Cacheable> rangeFunction) throws StorageAccessException {
+    public List<String> handleListRange(String key, long start, long end, Function<String, List<Cacheable>> rangeFunction) throws StorageAccessException {
         List<String> values = this.lrang(key, start, end);
         if (null == values || values.isEmpty()) {
-            List<Cacheable> loadValues = rangeFunction.apply(key, start, end);
-            if (null != loadValues && !loadValues.isEmpty()) {
+            List<Cacheable> loadValues = rangeFunction.apply(key);
+            if (null != loadValues) {
                 values = new ArrayList<>(loadValues.size());
                 Cacheable[] loadArray = new Cacheable[loadValues.size()];
-                for (int i=0, size = loadValues.size(); i<size; i++) {
+                for (int i = 0, size = loadValues.size(); i < size; i++) {
                     loadArray[i] = loadValues.get(i);
                     values.add(loadValues.get(i).getValue());
                 }
                 // todo left operation or right operation ?
-                this.lpush(key, loadArray);
+                this.rpush(key, loadArray);
             }
+        }
+        return values;
+    }
+
+    @Override
+    public Set<String> handleSetMembers(String key, Function<String, Set<? extends Cacheable>> setFunc) throws StorageAccessException {
+        Set<String> values = this.smembers(key);
+        if (null == values || values.isEmpty()) {
+            Set<? extends Cacheable> loadValues = setFunc.apply(key);
+            values = new HashSet<>(loadValues.size());
+            Cacheable[] loadArray = new Cacheable[loadValues.size()];
+            int index = 0;
+            for (Cacheable loadValue : loadValues) {
+                loadArray[index++] = loadValue;
+                values.add(loadValue.getKey());
+            }
+            this.sadd(key, loadArray);
         }
         return values;
     }

@@ -46,7 +46,7 @@ public interface Cache extends Loadable, Writable {
 
     String get(String key) throws CacheLoadingException;
 
-    void set(String key, Cacheable value) throws CacheWritingException;
+    boolean set(String key, Cacheable value) throws CacheWritingException;
 
     // -----------------------  list operation -----------------------
     long llen(String key) throws CacheLoadingException;
@@ -60,14 +60,14 @@ public interface Cache extends Loadable, Writable {
     // left ops
     boolean lpush(String key, Cacheable value) throws CacheWritingException;
 
-    boolean lpush(String key, Cacheable... values) throws CacheWritingException;
+    long lpush(String key, Cacheable... values) throws CacheWritingException;
 
     String lpop(String key) throws CacheWritingException;
 
     // right ops
     boolean rpush(String key, Cacheable value) throws CacheWritingException;
 
-    boolean rpush(String key, Cacheable... values) throws CacheWritingException;
+    long rpush(String key, Cacheable... values) throws CacheWritingException;
 
     String rpop(String key) throws CacheWritingException;
 
@@ -80,7 +80,7 @@ public interface Cache extends Loadable, Writable {
 
     boolean sadd(String key, Cacheable value) throws CacheWritingException;
 
-    boolean sadd(String key, Cacheable... values) throws CacheWritingException;
+    long sadd(String key, Cacheable... values) throws CacheWritingException;
 
     Set<String> sunion(String... keys) throws CacheWritingException;
 

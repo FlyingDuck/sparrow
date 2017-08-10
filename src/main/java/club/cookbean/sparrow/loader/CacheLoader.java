@@ -18,14 +18,19 @@ package club.cookbean.sparrow.loader;
 import club.cookbean.sparrow.exception.BulkCacheLoadingException;
 import club.cookbean.sparrow.redis.Cacheable;
 
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 public interface CacheLoader {
-    // TODO load / loadList / loadSet / loadMap
 
     Cacheable load(String key) throws Exception;
 
 //    Map<String, Cacheable> loadAll(Iterable<String> keys) throws BulkCacheLoadingException, Exception;
-    List<Cacheable> loadListRange(String key, long start, long end) throws Exception;
+
+//    List<Cacheable> loadListRange(String key/*, long start, long end*/) throws BulkCacheLoadingException, Exception;
+
+    Set<Cacheable> loadSet(String key) throws BulkCacheLoadingException, Exception;
+
+    List<Cacheable> loadList(String key) throws BulkCacheLoadingException, Exception;
 }
